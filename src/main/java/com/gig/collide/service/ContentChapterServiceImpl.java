@@ -874,45 +874,74 @@ public class ContentChapterServiceImpl implements ContentChapterService {
     @Override
     @Transactional
     public CommentDeleteResponse deleteComment(CommentDeleteRequest request) {
-        // 操作人信息处理，避免空值
-        String operatorInfo = request.getOperatorNickname() != null ? request.getOperatorNickname() : "未知操作人";
+        // 参数验证 - 现在只需要验证 commentId，其他字段在控制器中已设置默认值
+        if (request.getCommentId() == null || request.getCommentId() <= 0) {
+            throw new IllegalArgumentException("评论ID不能为空或小于等于0");
+        }
+        
+        // 操作人信息处理，由于控制器已设置默认值，这里应该不会为空
+        String operatorInfo = request.getOperatorNickname() != null ? request.getOperatorNickname().trim() : "系统管理员";
         log.info("开始删除评论，评论ID：{}，操作人：{}", request.getCommentId(), operatorInfo);
 
         // 检查评论是否存在且未被删除
+        log.debug("检查评论是否存在，commentId={}", request.getCommentId());
         int commentExists = commentMapper.checkCommentExists(request.getCommentId());
+        log.debug("评论存在性检查结果：commentId={}, exists={}", request.getCommentId(), commentExists);
+        
         if (commentExists == 0) {
+            log.warn("评论不存在或已被删除，commentId={}", request.getCommentId());
             throw new IllegalArgumentException("评论不存在或已被删除，ID：" + request.getCommentId());
         }
 
         // 查询评论详情
+        log.debug("查询评论详情，commentId={}", request.getCommentId());
         Comment comment = commentMapper.selectCommentById(request.getCommentId());
         if (comment == null) {
+            log.warn("查询评论详情失败，commentId={}", request.getCommentId());
             throw new IllegalArgumentException("评论不存在，ID：" + request.getCommentId());
         }
 
-        log.info("要删除的评论信息：ID={}，内容={}，用户={}，状态={}",
+        log.info("要删除的评论信息：ID={}，内容={}，用户={}，状态={}，类型={}，目标ID={}",
                 comment.getId(),
                 comment.getContent() != null ? comment.getContent().substring(0, Math.min(comment.getContent().length(), 50)) + "..." : "null",
                 comment.getUserNickname(),
-                comment.getStatus());
+                comment.getStatus(),
+                comment.getCommentType(),
+                comment.getTargetId());
+
+        // 检查评论当前状态
+        if ("DELETED".equals(comment.getStatus())) {
+            log.warn("评论已被删除，无需重复删除，commentId={}", request.getCommentId());
+            throw new IllegalArgumentException("评论已被删除，无需重复删除");
+        }
 
         // 删除评论（软删除）
+        log.debug("执行评论软删除，commentId={}", request.getCommentId());
         int deleteResult = commentMapper.deleteCommentById(request.getCommentId());
+        log.debug("评论删除SQL执行结果：commentId={}, affectedRows={}", request.getCommentId(), deleteResult);
+        
         if (deleteResult <= 0) {
-            throw new RuntimeException("删除评论失败");
+            log.error("删除评论失败，SQL未影响任何行，commentId={}", request.getCommentId());
+            throw new RuntimeException("删除评论失败，可能评论已被删除或不存在");
         }
 
         // 查询目标内容标题
         String targetTitle = null;
-        if ("CONTENT".equals(comment.getCommentType())) {
-            targetTitle = contentMapper.selectContentTitleById(comment.getTargetId());
+        try {
+            if ("CONTENT".equals(comment.getCommentType())) {
+                log.debug("查询目标内容标题，targetId={}", comment.getTargetId());
+                targetTitle = contentMapper.selectContentTitleById(comment.getTargetId());
+                log.debug("目标内容标题查询结果：targetId={}, title={}", comment.getTargetId(), targetTitle);
+            }
+        } catch (Exception e) {
+            log.warn("查询目标内容标题失败，将跳过此步骤，targetId={}, error={}", comment.getTargetId(), e.getMessage());
         }
 
         // 构建响应对象
         CommentDeleteResponse response = new CommentDeleteResponse();
         response.setCommentId(comment.getId());
         response.setCommentContent(comment.getContent() != null ?
-                comment.getContent().substring(0, Math.min(comment.getContent().length(), 50)) : "");
+                comment.getContent().substring(0, Math.min(comment.getContent().length(), 100)) : "");
         response.setUserId(comment.getUserId());
         response.setUserNickname(comment.getUserNickname());
         response.setTargetId(comment.getTargetId());
@@ -922,7 +951,7 @@ public class ContentChapterServiceImpl implements ContentChapterService {
         response.setOperatorNickname(request.getOperatorNickname());
         response.setDeleteTime(LocalDateTime.now());
 
-        log.info("评论删除成功，评论ID：{}，用户：{}", comment.getId(), comment.getUserNickname());
+        log.info("评论删除成功，评论ID：{}，用户：{}，操作人：{}", comment.getId(), comment.getUserNickname(), operatorInfo);
 
         return response;
     }

@@ -695,19 +695,34 @@ public class ContentChapterController {
 
     /**
      * 功能：删除评论
-     * 描述：删除指定评论，支持软删除，记录删除原因和操作人信息
+     * 描述：删除指定评论，支持软删除，自动记录删除原因和操作人信息
      * 使用场景：评论管理、违规评论处理、评论清理、数据维护
      *
-     * @param request 删除请求对象，包含评论ID、删除原因和操作人信息
+     * @param request 删除请求对象，只需要评论ID，其他字段可选
      * @return 删除结果响应，包含被删除的评论信息和删除详情
      *
-     * 请求报文：
+     * 请求报文（简化版，推荐）：
+     * DELETE /api/admin/content-chapter/comment/delete
+     * Content-Type: application/json
+     * {
+     *   "commentId": 1
+     * }
+     *
+     * 请求报文（完整版，可选）：
+     * DELETE /api/admin/content-chapter/comment/delete
+     * Content-Type: application/json
      * {
      *   "commentId": 1,
      *   "deleteReason": "评论违规，包含不当信息",
      *   "operatorId": 1001,
      *   "operatorNickname": "管理员"
      * }
+     *
+     * 参数说明：
+     * - commentId: 必填，评论ID，必须大于0
+     * - operatorNickname: 可选，操作人昵称（默认："系统管理员"）
+     * - operatorId: 可选，操作人ID（默认：0）
+     * - deleteReason: 可选，删除原因（默认："管理员删除"）
      *
      * 响应报文：
      * {
@@ -729,18 +744,51 @@ public class ContentChapterController {
     @DeleteMapping("/comment/delete")
     public Map<String, Object> deleteComment(@Valid @RequestBody CommentDeleteRequest request) {
         try {
-            // 操作人信息处理，避免空值
-            String operatorInfo = request.getOperatorNickname() != null ? request.getOperatorNickname() : "未知操作人";
-            log.info("接收到删除评论请求，评论ID：{}，操作人：{}", request.getCommentId(), operatorInfo);
+            // 详细的参数验证和日志记录
+            log.info("接收到删除评论请求，原始参数：commentId={}, operatorNickname={}, deleteReason={}, operatorId={}", 
+                    request.getCommentId(), request.getOperatorNickname(), request.getDeleteReason(), request.getOperatorId());
+
+            // 验证必填参数 - 现在只需要验证 commentId
+            if (request.getCommentId() == null) {
+                log.warn("删除评论失败：评论ID为空");
+                return ResponseUtil.error("评论ID不能为空");
+            }
+            
+            if (request.getCommentId() <= 0) {
+                log.warn("删除评论失败：评论ID无效，commentId={}", request.getCommentId());
+                return ResponseUtil.error("评论ID必须大于0");
+            }
+
+            // 为必要字段设置默认值
+            if (request.getOperatorNickname() == null || request.getOperatorNickname().trim().isEmpty()) {
+                request.setOperatorNickname("系统管理员");
+                log.info("操作人昵称为空，已设置默认值：系统管理员");
+            }
+            
+            if (request.getOperatorId() == null) {
+                request.setOperatorId(0L); // 默认操作人ID
+                log.debug("操作人ID为空，已设置默认值：0");
+            }
+            
+            if (request.getDeleteReason() == null || request.getDeleteReason().trim().isEmpty()) {
+                request.setDeleteReason("管理员删除");
+                log.debug("删除原因为空，已设置默认值：管理员删除");
+            }
+
+            // 操作人信息处理
+            String operatorInfo = request.getOperatorNickname().trim();
+            log.info("开始删除评论，评论ID：{}，操作人：{}", request.getCommentId(), operatorInfo);
 
             CommentDeleteResponse result = contentChapterService.deleteComment(request);
+            
+            log.info("评论删除成功，评论ID：{}，操作人：{}", request.getCommentId(), operatorInfo);
             return ResponseUtil.success(result, "删除成功");
 
         } catch (IllegalArgumentException e) {
-            log.warn("删除评论参数错误：{}", e.getMessage());
+            log.warn("删除评论参数错误：commentId={}, error={}", request != null ? request.getCommentId() : "null", e.getMessage());
             return ResponseUtil.error("参数错误：" + e.getMessage());
         } catch (Exception e) {
-            log.error("删除评论失败", e);
+            log.error("删除评论失败，commentId={}, error={}", request != null ? request.getCommentId() : "null", e.getMessage(), e);
             return ResponseUtil.error("删除失败：" + e.getMessage());
         }
     }
