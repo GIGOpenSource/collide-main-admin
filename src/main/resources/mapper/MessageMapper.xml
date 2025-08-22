@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.MessageMapper">
+
+    <!-- 消息会话查询结果映射 -->
+    <resultMap id="MessageSessionResultMap" type="com.gig.collide.dto.messageDto.MessageSessionDTO">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="other_user_id" property="otherUserId" jdbcType="BIGINT"/>
+        <result column="other_user_nickname" property="otherUserNickname" jdbcType="VARCHAR"/>
+        <result column="other_user_avatar" property="otherUserAvatar" jdbcType="VARCHAR"/>
+        <result column="message_count" property="messageCount" jdbcType="INTEGER"/>
+        <result column="last_message_time" property="lastMessageTime" jdbcType="TIMESTAMP"/>
+        <result column="unread_count" property="unreadCount" jdbcType="INTEGER"/>
+        <result column="last_message_content" property="lastMessageContent" jdbcType="VARCHAR"/>
+        <result column="last_message_type" property="lastMessageType" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 消息详情查询结果映射 -->
+    <resultMap id="MessageDetailResultMap" type="com.gig.collide.dto.messageDto.MessageDetailDTO">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="message_sequence" property="messageSequence" jdbcType="INTEGER"/>
+        <result column="sender_id" property="senderId" jdbcType="BIGINT"/>
+        <result column="receiver_id" property="receiverId" jdbcType="BIGINT"/>
+        <result column="message_type" property="messageType" jdbcType="VARCHAR"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="is_read" property="isRead" jdbcType="INTEGER"/>
+        <result column="read_time" property="readTime" jdbcType="TIMESTAMP"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 消息详情包含对话数量查询结果映射 -->
+    <resultMap id="MessageDetailWithCountResultMap" type="com.gig.collide.dto.messageDto.MessageDetailWithCountDTO">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="message_sequence" property="messageSequence" jdbcType="INTEGER"/>
+        <result column="sender_id" property="senderId" jdbcType="BIGINT"/>
+        <result column="receiver_id" property="receiverId" jdbcType="BIGINT"/>
+        <result column="message_type" property="messageType" jdbcType="VARCHAR"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="is_read" property="isRead" jdbcType="INTEGER"/>
+        <result column="read_time" property="readTime" jdbcType="TIMESTAMP"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="message_count" property="messageCount" jdbcType="BIGINT"/>
+    </resultMap>
+
+
+
+    <!-- 消息通知查询结果映射 -->
+    <resultMap id="InformResultMap" type="com.gig.collide.dto.messageDto.InformDTO">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="app_name" property="appName" jdbcType="VARCHAR"/>
+        <result column="type_relation" property="typeRelation" jdbcType="VARCHAR"/>
+        <result column="user_type" property="userType" jdbcType="VARCHAR"/>
+        <result column="notification_content" property="notificationContent" jdbcType="VARCHAR"/>
+        <result column="send_time" property="sendTime" jdbcType="TIMESTAMP"/>
+        <result column="is_deleted" property="isDeleted" jdbcType="VARCHAR"/>
+        <result column="is_sent" property="isSent" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 查询消息会话列表（支持ID模糊查询和状态查询） -->
+    <select id="queryMessageSessions" resultMap="MessageSessionResultMap" parameterType="com.gig.collide.dto.messageDto.MessageSessionQueryRequest">
+        SELECT
+        ms.id,
+        ms.user_id,
+        ms.other_user_id,
+        ms.last_message_time,
+        ms.unread_count,
+        ms.create_time,
+        ms.update_time,
+        u.nickname as other_user_nickname,
+        u.avatar as other_user_avatar,
+        m.content as last_message_content,
+        m.message_type as last_message_type,
+        (SELECT COUNT(*) FROM t_message WHERE
+        (sender_id = ms.user_id AND receiver_id = ms.other_user_id)
+        OR (sender_id = ms.other_user_id AND receiver_id = ms.user_id)
+        ) as message_count
+        FROM t_message_session ms
+        LEFT JOIN t_user u ON ms.other_user_id = u.id
+        LEFT JOIN t_message m ON ms.last_message_id = m.id
+        <where>
+            <if test="id != null and id != ''">
+                <choose>
+                    <when test="id instanceof java.lang.String">
+                        AND CAST(ms.id AS CHAR) LIKE CONCAT('%', #{id}, '%')
+                    </when>
+                    <otherwise>
+                        AND ms.id = #{id}
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="userId != null">
+                AND ms.user_id = #{userId}
+            </if>
+            <if test="otherUserId != null">
+                AND ms.other_user_id = #{otherUserId}
+            </if>
+            <if test="hasUnread != null">
+                <choose>
+                    <when test="hasUnread == 1">
+                        AND ms.unread_count > 0
+                    </when>
+                    <otherwise>
+                        AND ms.unread_count = 0
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="status != null">
+                AND ms.status = #{status}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND ms.create_time >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND ms.create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY ms.update_time DESC
+        <if test="offset != null and size != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
+    </select>
+
+
+    <select id="queryMessageDetails" resultMap="MessageDetailResultMap">
+        SELECT
+            id,
+            sender_id,
+            receiver_id,
+            message_type,
+            content,
+            status,
+            CASE WHEN read_time IS NOT NULL THEN 1 ELSE 0 END as is_read,
+            read_time,
+            create_time
+        FROM t_message
+        WHERE ((sender_id = (SELECT user_id FROM t_message_session WHERE id = #{sessionId})
+            AND receiver_id = (SELECT other_user_id FROM t_message_session WHERE id = #{sessionId}))
+            OR (sender_id = (SELECT other_user_id FROM t_message_session WHERE id = #{sessionId})
+                AND receiver_id = (SELECT user_id FROM t_message_session WHERE id = #{sessionId})))
+        ORDER BY create_time ASC
+    </select>
+
+
+    <!-- 根据ID查询单个消息详情 -->
+    <select id="getMessageById" resultMap="MessageDetailResultMap">
+        SELECT
+            id,
+            sender_id,
+            receiver_id,
+            message_type,
+            content,
+            status,
+            CASE WHEN read_time IS NOT NULL THEN 1 ELSE 0 END as is_read,
+            read_time,
+            create_time
+        FROM t_message
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据ID查询单个消息详情（包含对话数量） -->
+    <select id="getMessageByIdWithCount" resultMap="MessageDetailWithCountResultMap">
+        SELECT
+            m.id,
+            m.sender_id,
+            m.receiver_id,
+            m.message_type,
+            m.content,
+            m.status,
+            CASE WHEN m.read_time IS NOT NULL THEN 1 ELSE 0 END as is_read,
+            m.read_time,
+            m.create_time,
+            (SELECT COUNT(*) FROM t_message WHERE
+                (sender_id = m.sender_id AND receiver_id = m.receiver_id)
+                                               OR (sender_id = m.receiver_id AND receiver_id = m.sender_id)
+            ) as message_count
+        FROM t_message m
+        WHERE m.id = #{id}
+    </select>
+
+    <!-- 根据ID查询单个消息详情（支持分页，包含对话数量） -->
+    <select id="getMessageByIdWithPageAndCount" resultMap="MessageDetailWithCountResultMap">
+        SELECT
+            m.id,
+            ROW_NUMBER() OVER (ORDER BY m.create_time ASC) as message_sequence,
+            m.sender_id,
+            m.receiver_id,
+            m.message_type,
+            m.content,
+            m.status,
+            CASE WHEN m.read_time IS NOT NULL THEN 1 ELSE 0 END as is_read,
+            m.read_time,
+            m.create_time,
+            (SELECT COUNT(*) FROM t_message WHERE
+                (sender_id = m.sender_id AND receiver_id = m.receiver_id)
+                                               OR (sender_id = m.receiver_id AND receiver_id = m.sender_id)
+            ) as message_count
+        FROM t_message m
+        WHERE m.id = #{id}
+        ORDER BY m.create_time ASC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 查询对话消息数量 -->
+    <select id="getMessageCountBySessionId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_message
+        WHERE ((sender_id = (SELECT user_id FROM t_message_session WHERE id = #{sessionId})
+            AND receiver_id = (SELECT other_user_id FROM t_message_session WHERE id = #{sessionId}))
+            OR (sender_id = (SELECT other_user_id FROM t_message_session WHERE id = #{sessionId})
+                AND receiver_id = (SELECT user_id FROM t_message_session WHERE id = #{sessionId})))
+    </select>
+
+
+
+
+
+
+    <!-- 查询消息通知列表 -->
+    <select id="queryInforms" resultMap="InformResultMap" parameterType="com.gig.collide.dto.messageDto.InformQueryRequest">
+        SELECT
+        id,
+        app_name,
+        type_relation,
+        user_type,
+        notification_content,
+        send_time,
+        is_deleted,
+        is_sent,
+        create_time,
+        update_time
+        FROM t_inform
+        <where>
+            is_deleted = 'N'  <!-- 添加逻辑删除过滤条件 -->
+            <if test="appName != null and appName != ''">
+                AND app_name LIKE CONCAT('%', #{appName}, '%')
+            </if>
+            <if test="typeRelation != null and typeRelation != ''">
+                AND type_relation LIKE CONCAT('%', #{typeRelation}, '%')
+            </if>
+            <if test="userType != null and userType != ''">
+                AND user_type LIKE CONCAT('%', #{userType}, '%')
+            </if>
+            <if test="isSent != null and isSent != ''">
+                AND is_sent = #{isSent}
+            </if>
+            <if test="isDeleted != null and isDeleted != ''">
+                AND is_deleted = #{isDeleted}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND create_time >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and size != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
+    </select>
+
+
+
+    <!-- 根据ID查询单个通知（包括已删除的记录） -->
+    <select id="getInformById" resultMap="InformResultMap">
+        SELECT
+            id,
+            app_name,
+            type_relation,
+            user_type,
+            notification_content,
+            send_time,
+            is_deleted,
+            is_sent,
+            create_time,
+            update_time
+        FROM t_inform
+        WHERE id = #{id}
+    </select>
+
+
+    <!-- 根据ID删除消息通知（逻辑删除） -->
+    <update id="deleteInformById">
+        UPDATE t_inform
+        SET is_deleted = 'Y', update_time = NOW()
+        WHERE id = #{id} AND is_deleted = 'N'
+    </update>
+
+    <!-- 创建消息详情 -->
+    <insert id="insertMessage" parameterType="com.gig.collide.domain.message.Message" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_message (
+            sender_id,
+            receiver_id,
+            content,
+            message_type,
+            extra_data,
+            status,
+            read_time,
+            reply_to_id,
+            is_pinned,
+            create_time,
+            update_time
+        ) VALUES (
+                     #{senderId},
+                     #{receiverId},
+                     #{content},
+                     #{messageType},
+                     #{extraData},
+                     #{status},
+                     #{readTime},
+                     #{replyToId},
+                     #{isPinned},
+                     #{createTime},
+                     #{updateTime}
+                 )
+    </insert>
+
+    <!-- 更新消息详情 -->
+    <update id="updateMessage" parameterType="com.gig.collide.domain.message.Message">
+        UPDATE t_message
+        <set>
+            <if test="messageType != null and messageType != ''">
+                message_type = #{messageType},
+            </if>
+            <if test="content != null and content != ''">
+                content = #{content},
+            </if>
+            <if test="extraData != null">
+                extra_data = #{extraData},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="readTime != null">
+                read_time = #{readTime},
+            </if>
+            <if test="isPinned != null">
+                is_pinned = #{isPinned},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            update_time = #{updateTime}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+
+
+    <!-- 创建消息通知 -->
+    <insert id="insertInform" parameterType="com.gig.collide.dto.messageDto.InformDTO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_inform (
+            app_name,
+            type_relation,
+            user_type,
+            notification_content,
+            send_time,
+            is_deleted,
+            is_sent,
+            create_time,
+            update_time
+        ) VALUES (
+                     #{appName},
+                     #{typeRelation},
+                     #{userType},
+                     #{notificationContent},
+                     #{sendTime},
+                     #{isDeleted},
+                     #{isSent},
+                     #{createTime},
+                     #{updateTime}
+                 )
+    </insert>
+
+    <!-- 统计消息通知数量（排除已逻辑删除的记录） -->
+    <select id="countInforms" resultType="java.lang.Long" parameterType="com.gig.collide.dto.messageDto.InformQueryRequest">
+        SELECT COUNT(*)
+        FROM t_inform
+        <where>
+            is_deleted = 'N'  <!-- 添加逻辑删除过滤条件 -->
+            <if test="appName != null and appName != ''">
+                AND app_name LIKE CONCAT('%', #{appName}, '%')
+            </if>
+            <if test="typeRelation != null and typeRelation != ''">
+                AND type_relation LIKE CONCAT('%', #{typeRelation}, '%')
+            </if>
+            <if test="userType != null and userType != ''">
+                AND user_type LIKE CONCAT('%', #{userType}, '%')
+            </if>
+            <if test="isSent != null and isSent != ''">
+                AND is_sent = #{isSent}
+            </if>
+            <if test="isDeleted != null and isDeleted != ''">
+                AND is_deleted = #{isDeleted}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND create_time >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND create_time &lt;= #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据会话ID查询消息详情（支持时间范围查询） -->
+    <select id="queryMessagesBySessionIdWithTimeRange" resultMap="MessageDetailResultMap">
+        SELECT
+        m.id,
+        ROW_NUMBER() OVER (ORDER BY m.create_time ASC) as message_sequence,
+        m.sender_id,
+        m.receiver_id,
+        m.message_type,
+        m.content,
+        m.status,
+        CASE WHEN m.read_time IS NOT NULL THEN 1 ELSE 0 END as is_read,
+        m.read_time,
+        m.create_time
+        FROM t_message m
+        INNER JOIN t_message_session ms ON ms.id = #{sessionId}
+        WHERE ((m.sender_id = ms.user_id AND m.receiver_id = ms.other_user_id)
+        OR (m.sender_id = ms.other_user_id AND m.receiver_id = ms.user_id))
+        <if test="startTime != null and startTime != ''">
+            AND m.create_time >= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND m.create_time &lt;= #{endTime}
+        </if>
+        ORDER BY m.create_time ASC
+        <if test="size != null and offset != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- 根据会话ID统计消息数量（支持时间范围查询） -->
+    <select id="countMessagesBySessionIdWithTimeRange" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_message m
+        INNER JOIN t_message_session ms ON ms.id = #{sessionId}
+        WHERE ((m.sender_id = ms.user_id AND m.receiver_id = ms.other_user_id)
+        OR (m.sender_id = ms.other_user_id AND m.receiver_id = ms.user_id))
+        <if test="startTime != null and startTime != ''">
+            AND m.create_time >= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND m.create_time &lt;= #{endTime}
+        </if>
+    </select>
+
+
+    <!-- 根据ID查询单个消息详情（支持分页） -->
+    <select id="getMessageByIdWithPage" resultMap="MessageDetailResultMap">
+        SELECT
+            id,
+            sender_id,
+            receiver_id,
+            message_type,
+            content,
+            status,
+            CASE WHEN read_time IS NOT NULL THEN 1 ELSE 0 END as is_read,
+            read_time,
+            create_time
+        FROM t_message
+        WHERE id = #{id}
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+
+</mapper>

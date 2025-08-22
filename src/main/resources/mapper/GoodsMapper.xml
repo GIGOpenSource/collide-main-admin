@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.GoodsMapper">
+
+    <!-- 商品信息结果映射 -->
+    <resultMap id="GoodsDTOMap" type="com.gig.collide.dto.goodsDto.GoodsDTO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="goods_type" property="goodsType"/>
+        <result column="price" property="price"/>
+        <result column="original_price" property="originalPrice"/>
+        <result column="coin_price" property="coinPrice"/>
+        <result column="coin_amount" property="coinAmount"/>
+        <result column="content_id" property="contentId"/>
+        <result column="content_title" property="contentTitle"/>
+        <result column="subscription_duration" property="subscriptionDuration"/>
+        <result column="subscription_type" property="subscriptionType"/>
+        <result column="stock" property="stock"/>
+        <result column="cover_url" property="coverUrl"/>
+        <result column="images" property="images"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="seller_name" property="sellerName"/>
+        <result column="status" property="status"/>
+        <result column="sales_count" property="salesCount"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="strategy_scene" property="strategyScene"/>
+        <result column="browser_tag" property="browserTag"/>
+        <result column="package_name" property="packageName"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="is_online" property="isOnline"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询商品信息（返回所有字段，支持条件查询和分页） -->
+    <select id="selectGoodsWithAllFields" resultMap="GoodsDTOMap">
+        SELECT 
+            id,
+            name,
+            description,
+            category_id,
+            category_name,
+            goods_type,
+            price,
+            original_price,
+            coin_price,
+            coin_amount,
+            content_id,
+            content_title,
+            subscription_duration,
+            subscription_type,
+            stock,
+            cover_url,
+            images,
+            seller_id,
+            seller_name,
+            status,
+            sales_count,
+            view_count,
+            strategy_scene,
+            browser_tag,
+            package_name,
+            sort_order,
+            is_online,
+            create_time,
+            update_time
+        FROM t_goods
+        <where>
+            1 = 1
+            <if test="request.id != null">
+                AND id = #{request.id}
+            </if>
+            <if test="request.packageName != null and request.packageName != ''">
+                AND package_name LIKE CONCAT('%', #{request.packageName}, '%')
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+            <if test="request.strategyScene != null and request.strategyScene != ''">
+                AND strategy_scene LIKE CONCAT('%', #{request.strategyScene}, '%')
+            </if>
+        </where>
+        ORDER BY sort_order DESC, create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计商品总数（支持条件查询） -->
+    <select id="countGoodsWithConditions" resultType="long">
+        SELECT COUNT(*)
+        FROM t_goods
+        <where>
+            1 = 1
+            <if test="request.id != null">
+                AND id = #{request.id}
+            </if>
+            <if test="request.packageName != null and request.packageName != ''">
+                AND package_name LIKE CONCAT('%', #{request.packageName}, '%')
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+            <if test="request.strategyScene != null and request.strategyScene != ''">
+                AND strategy_scene LIKE CONCAT('%', #{request.strategyScene}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查询商品详情 -->
+    <select id="selectGoodsById" resultMap="GoodsDTOMap">
+        SELECT 
+            id,
+            name,
+            description,
+            category_id,
+            category_name,
+            goods_type,
+            price,
+            original_price,
+            coin_price,
+            coin_amount,
+            content_id,
+            content_title,
+            subscription_duration,
+            subscription_type,
+            stock,
+            cover_url,
+            images,
+            seller_id,
+            seller_name,
+            status,
+            sales_count,
+            view_count,
+            strategy_scene,
+            browser_tag,
+            package_name,
+            sort_order,
+            is_online,
+            create_time,
+            update_time
+        FROM t_goods
+        WHERE id = #{id}
+    </select>
+
+    <!-- 更新商品上线下线状态 -->
+    <update id="updateOnlineStatus">
+        UPDATE t_goods 
+        SET is_online = #{isOnline}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,83 @@
+server:
+  port: 9998
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: collide-admin
+  
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/collide?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    
+  # MyBatis Plus 配置
+  mybatis-plus:
+    mapper-locations: classpath:mapper/*.xml
+    configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    global-config:
+      db-config:
+        id-type: auto
+        logic-delete-field: deleted
+        logic-delete-value: 1
+        logic-not-delete-value: 0
+  
+  # Jackson 配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+# Sa-Token 配置
+sa-token:
+  token-name: Authorization
+  timeout: 2592000
+  activity-timeout: -1
+  is-concurrent: true
+  is-share: false
+  token-style: uuid
+  is-log: false
+
+# 日志配置
+logging:
+  level:
+    com.gig.collide: debug
+    org.springframework.web: info
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# AWS S3 配置
+aws:
+  s3:
+    # AWS 访问密钥配置（请替换为您的实际配置）
+    access-key-id: ${AWS_ACCESS_KEY_ID:your-access-key-id}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY:your-secret-access-key}
+    
+    # AWS 区域配置
+    region: ${AWS_REGION:us-east-1}
+    
+    # S3 存储桶名称
+    bucket-name: ${S3_BUCKET_NAME:your-bucket-name}
+    
+    # S3 端点URL（可选，用于兼容其他S3兼容服务如MinIO）
+    # endpoint-url: ${S3_ENDPOINT_URL:}
+    
+    # 防盗链配置
+    anti-hotlink:
+      # 是否启用防盗链
+      enabled: true
+      
+      # 允许的域名列表（支持通配符）
+      allowed-domains:
+        - "localhost"
+        - "127.0.0.1"
+        - "*.yourdomain.com"
+        - "yourdomain.com"
+      
+      # 防盗链签名过期时间（秒）
+      signature-expiration: 3600

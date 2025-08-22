@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.VipPowerMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="VipPowerDTOMap" type="com.gig.collide.dto.vipDto.VipPowerDTO">
+        <id column="id" property="id"/>
+        <result column="power_name" property="powerName"/>
+        <result column="attachment" property="attachment"/>
+        <result column="vip_name" property="vipName"/>
+        <result column="remark" property="remark"/>
+        <result column="priority" property="priority"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询条件SQL片段 -->
+    <sql id="queryConditions">
+        <where>
+            <if test="request.id != null">
+                AND id = #{request.id}
+            </if>
+            <if test="request.powerName != null and request.powerName != ''">
+                AND power_name LIKE CONCAT('%', #{request.powerName}, '%')
+            </if>
+            <if test="request.vipName != null and request.vipName != ''">
+                AND vip_name = #{request.vipName}
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 分页查询VIP特权列表 -->
+    <select id="selectVipPowerList" resultMap="VipPowerDTOMap">
+        SELECT 
+            id,
+            power_name,
+            attachment,
+            vip_name,
+            remark,
+            priority,
+            status,
+            create_time,
+            update_time
+        FROM t_vip_power
+        <include refid="queryConditions"/>
+        ORDER BY priority DESC, create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询VIP特权总数 -->
+    <select id="selectVipPowerCount" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM t_vip_power
+        <include refid="queryConditions"/>
+    </select>
+
+    <!-- 根据ID查询VIP特权详情 -->
+    <select id="selectVipPowerById" resultMap="VipPowerDTOMap">
+        SELECT 
+            id,
+            power_name,
+            attachment,
+            vip_name,
+            remark,
+            priority,
+            status,
+            create_time,
+            update_time
+        FROM t_vip_power
+        WHERE id = #{id}
+    </select>
+
+    <!-- 检查VIP特权是否存在 -->
+    <select id="checkVipPowerExists" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM t_vip_power
+        WHERE id = #{id}
+    </select>
+
+    <!-- 检查特权文案名称是否已存在 -->
+    <select id="checkPowerNameExists" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM t_vip_power
+        WHERE power_name = #{powerName}
+        AND vip_name = #{vipName}
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+    </select>
+
+</mapper>

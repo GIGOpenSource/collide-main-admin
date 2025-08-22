@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.HomeMapper">
+
+    <!-- 获取当前在线用户数 -->
+    <select id="getCurrentOnlineUsers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_user
+        WHERE status = 0
+    </select>
+
+    <!-- 获取指定日期的新增用户数 -->
+    <select id="getNewUserCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_user
+        WHERE DATE(create_time) = #{date}
+    </select>
+
+    <!-- 获取指定日期的充值人数（去重用户数） -->
+    <select id="getRechargeUserCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM t_payment
+        WHERE DATE(create_time) = #{date}
+        AND status = 'success'
+    </select>
+
+    <!-- 获取指定日期新用户充值金额 -->
+    <select id="getNewUserRechargeAmount" resultType="java.lang.Double">
+        SELECT COALESCE(SUM(p.amount), 0)
+        FROM t_payment p
+        INNER JOIN t_user u ON p.user_id = u.id
+        WHERE DATE(p.create_time) = #{date}
+        AND DATE(u.create_time) = #{date}
+        AND p.status = 'success'
+    </select>
+
+    <!-- 获取指定日期的总充值金额 -->
+    <select id="getTotalRechargeAmount" resultType="java.lang.Double">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM t_payment
+        WHERE DATE(create_time) = #{date}
+        AND status = 'success'
+    </select>
+
+    <!-- 获取指定日期的金币订单数 -->
+    <select id="getCoinOrderCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_order
+        WHERE DATE(create_time) = #{date}
+        AND goods_type = 'coin'
+        AND status = 'success'
+    </select>
+
+    <!-- 获取指定日期的VIP订单数 -->
+    <select id="getVipOrderCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_order
+        WHERE DATE(create_time) = #{date}
+        AND goods_type = 'subscription'
+        AND status = 'success'
+    </select>
+
+    <!-- 获取用户消费金币总数 -->
+    <select id="getUserSpentCoins" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(coin_total_spent), 0)
+        FROM t_user_wallet
+        WHERE coin_total_spent > 0
+    </select>
+
+    <!-- 获取指定日期新用户中有订单的用户数 -->
+    <select id="getNewUserPayCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT u.id)
+        FROM t_user u
+        INNER JOIN t_order o ON u.id = o.user_id
+        WHERE DATE(u.create_time) = #{date}
+        AND DATE(o.create_time) = #{date}
+        AND o.status = 'success'
+    </select>
+
+    <!-- 获取指定日期的活跃用户数 -->
+    <select id="getActiveUserCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_user
+        WHERE DATE(last_login_time) = #{date}
+        AND status = 0
+    </select>
+
+    <!-- 获取指定日期的活跃付费用户数 -->
+    <select id="getActivePayUserCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT u.id)
+        FROM t_user u
+        INNER JOIN t_order o ON u.id = o.user_id
+        WHERE DATE(o.create_time) = #{date}
+        AND o.status = 'success'
+        AND u.status = 0
+    </select>
+
+    <!-- 获取总付费用户数 -->
+    <select id="getPayUserCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM t_order
+        WHERE status = 'success'
+    </select>
+
+    <!-- 获取指定日期的付费活跃用户数 -->
+    <select id="getPayUserActiveCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT u.id)
+        FROM t_user u
+        INNER JOIN t_order o ON u.id = o.user_id
+        WHERE DATE(o.create_time) = #{date}
+        AND o.status = 'success'
+        AND u.status = 0
+    </select>
+
+    <!-- 获取指定日期用户新增视频数 -->
+    <select id="getUserNewVideoCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_content
+        WHERE DATE(create_time) = #{date}
+        AND content_type = 'VIDEO'
+        AND status = 'PUBLISHED'
+    </select>
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.AdMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="AdResultMap" type="com.gig.collide.domain.ad.Ad">
+        <id column="id" property="id"/>
+        <result column="ad_name" property="adName"/>
+        <result column="ad_title" property="adTitle"/>
+        <result column="ad_description" property="adDescription"/>
+        <result column="ad_type" property="adType"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="click_url" property="clickUrl"/>
+        <result column="alt_text" property="altText"/>
+        <result column="target_type" property="targetType"/>
+        <result column="is_active" property="isActive"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基础查询字段 -->
+    <sql id="Base_Column_List">
+        id, ad_name, ad_title, ad_description, ad_type, image_url, click_url,
+        alt_text, target_type, is_active, sort_order, create_time, update_time
+    </sql>
+
+</mapper>

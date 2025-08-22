@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.CommentMapper">
+
+    <!-- 根据评论ID查询评论详情 -->
+    <select id="selectCommentById" resultType="com.gig.collide.domain.content.Comment">
+        SELECT 
+            id,
+            comment_type,
+            target_id,
+            parent_comment_id,
+            content,
+            user_id,
+            user_nickname,
+            user_avatar,
+            reply_to_user_id,
+            reply_to_user_nickname,
+            reply_to_user_avatar,
+            status,
+            like_count,
+            reply_count,
+            create_time,
+            update_time
+        FROM t_comment
+        WHERE id = #{commentId}
+    </select>
+    
+    <!-- 检查评论是否存在且未被删除 -->
+    <select id="checkCommentExists" resultType="int">
+        SELECT COUNT(1)
+        FROM t_comment
+        WHERE id = #{commentId} 
+        AND status != 'DELETED'
+    </select>
+
+</mapper>

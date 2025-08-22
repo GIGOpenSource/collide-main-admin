@@ -1,0 +1,49 @@
+# AWS S3 配置文件示例
+# 将此配置添加到 application.yml 中
+
+aws:
+  s3:
+    # AWS 访问密钥配置
+    access-key-id: ${AWS_ACCESS_KEY_ID:your-access-key-id}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY:your-secret-access-key}
+    
+    # AWS 区域配置
+    region: ${AWS_REGION:us-east-1}
+    
+    # S3 存储桶名称
+    bucket-name: ${S3_BUCKET_NAME:your-bucket-name}
+    
+    # S3 端点URL（可选，用于兼容其他S3兼容服务如MinIO）
+    # endpoint-url: ${S3_ENDPOINT_URL:}
+    
+    # 防盗链配置
+    anti-hotlink:
+      # 是否启用防盗链
+      enabled: true
+      
+      # 允许的域名列表（支持通配符）
+      # * 表示允许所有域名
+      # *.example.com 表示允许所有example.com的子域名
+      # example.com 表示只允许example.com域名
+      allowed-domains:
+        - "localhost"
+        - "127.0.0.1"
+        - "*.yourdomain.com"
+        - "yourdomain.com"
+      
+      # 防盗链签名过期时间（秒）
+      signature-expiration: 3600
+      
+      # 防盗链重定向URL（当访问被拒绝时，可选）
+      # redirect-url: "https://yourdomain.com/access-denied"
+
+# 文件上传配置
+spring:
+  servlet:
+    multipart:
+      # 最大文件大小
+      max-file-size: 100MB
+      # 最大请求大小
+      max-request-size: 100MB
+      # 文件写入磁盘的阈值
+      file-size-threshold: 2KB

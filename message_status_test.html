@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消息会话状态查询测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 200px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>消息会话状态查询测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 基础状态查询测试</h2>
+        <div class="alert" style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 10px; margin: 10px 0; border-radius: 3px;">
+            <strong>✅ 已修复：</strong>数据库status字段已改为int类型，前端状态查询现在可以正常工作
+        </div>
+        <div class="form-group">
+            <label>状态值:</label>
+            <select id="statusSelect">
+                <option value="">请选择状态</option>
+                <option value="1">1 - 正常</option>
+                <option value="0">0 - 禁用</option>
+                <option value="2">2 - 删除</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>页码:</label>
+            <input type="number" id="page1" value="1" min="1">
+        </div>
+        <div class="form-group">
+            <label>每页大小:</label>
+            <input type="number" id="size1" value="10" min="1" max="100">
+        </div>
+        <button onclick="testStatusQuery()">测试状态查询</button>
+        <div id="result1" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. ID模糊查询测试</h2>
+        <div class="form-group">
+            <label>会话ID:</label>
+            <input type="text" id="sessionId" placeholder="输入ID或部分ID">
+        </div>
+        <div class="form-group">
+            <label>页码:</label>
+            <input type="number" id="page2" value="1" min="1">
+        </div>
+        <div class="form-group">
+            <label>每页大小:</label>
+            <input type="number" id="size2" value="10" min="1" max="100">
+        </div>
+        <button onclick="testIdQuery()">测试ID模糊查询</button>
+        <div id="result2" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 组合查询测试</h2>
+        <div class="form-group">
+            <label>会话ID:</label>
+            <input type="text" id="comboId" placeholder="输入ID或部分ID">
+        </div>
+        <div class="form-group">
+            <label>状态值:</label>
+            <select id="comboStatus">
+                <option value="">请选择状态</option>
+                <option value="1">1 - 正常</option>
+                <option value="0">0 - 禁用</option>
+                <option value="2">2 - 删除</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>页码:</label>
+            <input type="number" id="page3" value="1" min="1">
+        </div>
+        <div class="form-group">
+            <label>每页大小:</label>
+            <input type="number" id="size3" value="10" min="1" max="100">
+        </div>
+        <button onclick="testComboQuery()">测试组合查询</button>
+        <div id="result3" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. 调试信息</h2>
+        <button onclick="checkTableStructure()">检查表结构</button>
+        <button onclick="checkSampleData()">查看示例数据</button>
+        <div id="debugResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/admin/message';
+
+        // 测试状态查询
+        async function testStatusQuery() {
+            const status = document.getElementById('statusSelect').value;
+            const page = document.getElementById('page1').value;
+            const size = document.getElementById('size1').value;
+            
+            if (!status) {
+                showResult('result1', '请选择状态值', 'error');
+                return;
+            }
+
+            const request = {
+                status: parseInt(status),
+                page: parseInt(page),
+                size: parseInt(size)
+            };
+
+            try {
+                showResult('result1', '发送请求中...\n' + JSON.stringify(request, null, 2), '');
+                
+                const response = await fetch(`${API_BASE}/sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(request)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('result1', '查询成功！\n' + JSON.stringify(result, null, 2), 'success');
+                } else {
+                    showResult('result1', '查询失败！\n' + JSON.stringify(result, null, 2), 'error');
+                }
+            } catch (error) {
+                showResult('result1', '请求异常：' + error.message, 'error');
+            }
+        }
+
+        // 测试ID模糊查询
+        async function testIdQuery() {
+            const id = document.getElementById('sessionId').value;
+            const page = document.getElementById('page2').value;
+            const size = document.getElementById('size2').value;
+            
+            if (!id) {
+                showResult('result2', '请输入会话ID', 'error');
+                return;
+            }
+
+            const request = {
+                id: id,
+                page: parseInt(page),
+                size: parseInt(size)
+            };
+
+            try {
+                showResult('result2', '发送请求中...\n' + JSON.stringify(request, null, 2), '');
+                
+                const response = await fetch(`${API_BASE}/sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(request)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('result2', '查询成功！\n' + JSON.stringify(result, null, 2), 'success');
+                } else {
+                    showResult('result2', '查询失败！\n' + JSON.stringify(result, null, 2), 'error');
+                }
+            } catch (error) {
+                showResult('result2', '请求异常：' + error.message, 'error');
+            }
+        }
+
+        // 测试组合查询
+        async function testComboQuery() {
+            const id = document.getElementById('comboId').value;
+            const status = document.getElementById('comboStatus').value;
+            const page = document.getElementById('page3').value;
+            const size = document.getElementById('size3').value;
+            
+            if (!id && !status) {
+                showResult('result3', '请至少输入一个查询条件', 'error');
+                return;
+            }
+
+            const request = {};
+            if (id) request.id = id;
+            if (status) request.status = parseInt(status);
+            request.page = parseInt(page);
+            request.size = parseInt(size);
+
+            try {
+                showResult('result3', '发送请求中...\n' + JSON.stringify(request, null, 2), '');
+                
+                const response = await fetch(`${API_BASE}/sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(request)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('result3', '查询成功！\n' + JSON.stringify(result, null, 2), 'success');
+                } else {
+                    showResult('result3', '查询失败！\n' + JSON.stringify(result, null, 2), 'error');
+                }
+            } catch (error) {
+                showResult('result3', '请求异常：' + error.message, 'error');
+            }
+        }
+
+        // 检查表结构
+        async function checkTableStructure() {
+            try {
+                showResult('debugResult', '检查表结构中...', '');
+                
+                // 这里可以调用后端接口来检查表结构
+                // 或者直接显示提示信息
+                showResult('debugResult', 
+                    '请执行以下SQL检查表结构：\n\n' +
+                    '1. DESCRIBE t_message_session;\n' +
+                    '2. SHOW COLUMNS FROM t_message_session LIKE \'status\';\n' +
+                    '3. SELECT * FROM t_message_session LIMIT 5;\n\n' +
+                    '如果status字段不存在，请执行：\n' +
+                    'ALTER TABLE t_message_session ADD COLUMN status INT DEFAULT 1;', 
+                    'success'
+                );
+            } catch (error) {
+                showResult('debugResult', '检查失败：' + error.message, 'error');
+            }
+        }
+
+        // 查看示例数据
+        async function checkSampleData() {
+            try {
+                showResult('debugResult', '查询示例数据中...', '');
+                
+                const response = await fetch(`${API_BASE}/sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        page: 1,
+                        size: 5
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('debugResult', '示例数据：\n' + JSON.stringify(result, null, 2), 'success');
+                } else {
+                    showResult('debugResult', '查询失败：' + JSON.stringify(result, null, 2), 'error');
+                }
+            } catch (error) {
+                showResult('debugResult', '查询失败：' + error.message, 'error');
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result ' + type;
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('消息会话状态查询测试页面已加载');
+            console.log('请确保后端服务正在运行，并且API路径正确');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.ContentChapterMapper">
+
+    <!-- 章节查询结果映射 -->
+    <resultMap id="ContentChapterMap" type="com.gig.collide.dto.contentDto.ContentChapterDTO">
+        <id column="id" property="id"/>
+        <result column="content_id" property="contentId"/>
+        <result column="chapter_num" property="chapterNum"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="file_url" property="fileUrl"/>
+        <result column="word_count" property="wordCount"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="content_type" property="contentType"/>
+        <result column="author_id" property="authorId"/>
+        <result column="author_nickname" property="authorNickname"/>
+    </resultMap>
+
+    <!-- 内容查询结果映射 -->
+    <resultMap id="ContentMap" type="com.gig.collide.dto.contentDto.ContentDTO">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="content_type" property="contentType"/>
+        <result column="status" property="status"/>
+        <result column="review_status" property="reviewStatus"/>
+        <result column="author_id" property="authorId"/>
+        <result column="author_nickname" property="authorNickname"/>
+        <result column="author_avatar" property="authorAvatar"/>
+        <result column="cover_url" property="coverUrl"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="tags" property="tags" typeHandler="com.gig.collide.config.ListStringTypeHandler"/>
+        <result column="content_data" property="contentData" typeHandler="com.gig.collide.config.ContentDataTypeHandler"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="comment_count" property="commentCount"/>
+        <result column="favorite_count" property="favoriteCount"/>
+        <result column="score_count" property="scoreCount"/>
+        <result column="score_total" property="scoreTotal"/>
+        <result column="publish_time" property="publishTime"/>
+        <result column="total_word_count" property="totalWordCount"/>
+        <result column="chapter_count" property="chapterCount"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 评论查询结果映射 -->
+    <resultMap id="CommentDetailMap" type="com.gig.collide.dto.contentDto.ContentStatisticsResponse$CommentDetail">
+        <id column="id" property="commentId"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_nickname" property="userNickname"/>
+        <result column="user_avatar" property="userAvatar"/>
+        <result column="create_time" property="commentTime"/>
+        <result column="content" property="commentContent"/>
+        <result column="like_count" property="commentLikeCount"/>
+        <result column="status" property="status"/>
+        <result column="parent_comment_id" property="parentCommentId"/>
+        <result column="reply_to_user_id" property="replyToUserId"/>
+        <result column="reply_to_user_nickname" property="replyToUserNickname"/>
+    </resultMap>
+
+    <!-- ==================== 公共SQL片段 ==================== -->
+    
+    <!-- 内容查询条件片段 -->
+    <sql id="contentWhereCondition">
+        <where>
+            <!-- 添加调试日志，显示查询条件 -->
+            <if test="request != null">
+                <!-- 记录查询参数 -->
+                <if test="request.title != null and request.title.trim() != ''">
+                    AND c.title LIKE CONCAT('%', #{request.title}, '%')
+                </if>
+                <if test="request.contentType != null and request.contentType.trim() != ''">
+                    AND c.content_type = #{request.contentType}
+                </if>
+                <if test="request.authorId != null">
+                    AND c.author_id = #{request.authorId}
+                </if>
+                <if test="request.authorNickname != null and request.authorNickname.trim() != ''">
+                    AND c.author_nickname LIKE CONCAT('%', #{request.authorNickname}, '%')
+                </if>
+                <if test="request.categoryId != null">
+                    AND c.category_id = #{request.categoryId}
+                </if>
+                <if test="request.categoryName != null and request.categoryName.trim() != ''">
+                    AND c.category_name LIKE CONCAT('%', #{request.categoryName}, '%')
+                </if>
+                <if test="request.status != null and request.status.trim() != ''">
+                    AND c.status = #{request.status}
+                </if>
+                <if test="request.reviewStatus != null and request.reviewStatus.trim() != ''">
+                    AND c.review_status = #{request.reviewStatus}
+                </if>
+                <if test="request.startTime != null">
+                    AND c.create_time >= #{request.startTime}
+                </if>
+                <if test="request.endTime != null">
+                    AND c.create_time &lt;= #{request.endTime}
+                </if>
+            </if>
+        </where>
+    </sql>
+
+    <!-- 章节查询条件片段 -->
+    <sql id="chapterWhereCondition">
+        <where>
+            <if test="request.contentId != null">
+                AND cc.content_id = #{request.contentId}
+            </if>
+            <if test="request.chapterNum != null">
+                AND cc.chapter_num = #{request.chapterNum}
+            </if>
+            <if test="request.title != null and request.title.trim() != ''">
+                AND cc.title = #{request.title}
+            </if>
+            <if test="request.status != null and request.status.trim() != ''">
+                AND cc.status = #{request.status}
+            </if>
+            <if test="request.startTime != null">
+                AND cc.create_time >= #{request.startTime}
+            </if>
+            <if test="request.endTime != null">
+                AND cc.create_time &lt;= #{request.endTime}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 内容连表查询条件片段 -->
+    <sql id="chapterContentWhereCondition">
+        <where>
+            <if test="request.contentId != null">
+                AND cc.content_id = #{request.contentId}
+            </if>
+            <if test="request.chapterNum != null">
+                AND cc.chapter_num = #{request.chapterNum}
+            </if>
+            <if test="request.title != null and request.title.trim() != ''">
+                AND cc.title = #{request.title}
+            </if>
+            <if test="request.contentType != null and request.contentType.trim() != ''">
+                AND c.content_type = #{request.contentType}
+            </if>
+            <if test="request.authorId != null">
+                AND c.author_id = #{request.authorId}
+            </if>
+            <if test="request.authorNickname != null and request.authorNickname.trim() != ''">
+                AND c.author_nickname = #{request.authorNickname}
+            </if>
+            <if test="request.status != null and request.status.trim() != ''">
+                AND cc.status = #{request.status}
+            </if>
+            <if test="request.startTime != null">
+                AND cc.create_time >= #{request.startTime}
+            </if>
+            <if test="request.endTime != null">
+                AND cc.create_time &lt;= #{request.endTime}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 分页限制片段 -->
+    <sql id="pageLimit">
+        LIMIT #{limit} OFFSET #{offset}
+    </sql>
+
+    <!-- ==================== 统计查询方法 ==================== -->
+
+    <!-- 查询单个内容的总字数 -->
+    <select id="selectTotalWordCountByContentId" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(word_count), 0)
+        FROM t_content_chapter
+        WHERE content_id = #{contentId}
+    </select>
+    
+    <!-- 查询单个内容的章节数量 -->
+    <select id="selectChapterCountByContentIdSimple" resultType="java.lang.Integer">
+        SELECT COALESCE(COUNT(*), 0)
+        FROM t_content_chapter
+        WHERE content_id = #{contentId}
+    </select>
+
+
+
+    <!-- ==================== 原有接口实现（保持兼容性） ==================== -->
+    
+    <!-- 分页查询内容列表 - 使用子查询优化 -->
+    <select id="selectContentListWithLimit" resultMap="ContentMap">
+        SELECT 
+            c.id,
+            c.title,
+            c.description,
+            c.content_type,
+            c.status,
+            c.review_status,
+            c.author_id,
+            c.author_nickname,
+            c.author_avatar,
+            c.cover_url,
+            c.category_id,
+            c.category_name,
+            c.tags,
+            CASE 
+                WHEN c.content_type = 'NOVEL' THEN 
+                    COALESCE((
+                        SELECT CONCAT('[', 
+                            COALESCE(
+                                GROUP_CONCAT(
+                                    CONCAT('{"contentId":', c.id, ',"chapterNum":', cc.chapter_num, ',"title":"', COALESCE(cc.title, ''), '","fileUrl":"', COALESCE(cc.file_url, ''), '","status":"', COALESCE(cc.status, ''), '"}')
+                                    ORDER BY cc.chapter_num ASC
+                                    SEPARATOR ','
+                                ),
+                                ''
+                            ),
+                            ']'
+                        )
+                        FROM t_content_chapter cc 
+                        WHERE cc.content_id = c.id 
+                        LIMIT 3
+                    ), 
+                    -- 如果没有章节数据，返回空数组
+                    '[]'
+                ) ELSE c.content_data
+            END as content_data,
+            c.view_count,
+            c.like_count,
+            c.comment_count,
+            c.favorite_count,
+            c.score_count,
+            c.score_total,
+            c.publish_time,
+            COALESCE((SELECT SUM(word_count) FROM t_content_chapter WHERE content_id = c.id), 0) as total_word_count,
+            COALESCE((SELECT COUNT(*) FROM t_content_chapter WHERE content_id = c.id), 0) as chapter_count,
+            c.create_time,
+            c.update_time
+        FROM t_content c
+        <include refid="contentWhereCondition"/>
+        ORDER BY c.create_time DESC
+        <include refid="pageLimit"/>
+    </select>
+
+
+
+    <!-- 查询内容总数 -->
+    <select id="selectContentCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_content c
+        <include refid="contentWhereCondition"/>
+    </select>
+
+    <!-- 根据内容ID分页查询章节列表 - 条件化连表 -->
+    <select id="selectChapterListByContentId" resultMap="ContentChapterMap">
+        SELECT 
+            cc.id,
+            cc.content_id,
+            cc.chapter_num,
+            cc.title,
+            LEFT(cc.content, 200) as content,
+            cc.file_url,
+            cc.word_count,
+            cc.status,
+            cc.create_time,
+            cc.update_time,
+            c.content_type,
+            c.author_id,
+            c.author_nickname
+        FROM t_content_chapter cc
+        INNER JOIN t_content c ON cc.content_id = c.id
+        WHERE cc.content_id = #{request.contentId}
+        <if test="request.chapterNum != null">
+            AND cc.chapter_num = #{request.chapterNum}
+        </if>
+        <if test="request.title != null and request.title.trim() != ''">
+            AND cc.title = #{request.title}
+        </if>
+        <if test="request.status != null and request.status.trim() != ''">
+            AND cc.status = #{request.status}
+        </if>
+        <if test="request.startTime != null">
+            AND cc.create_time >= #{request.startTime}
+        </if>
+        <if test="request.endTime != null">
+            AND cc.create_time &lt;= #{request.endTime}
+        </if>
+        ORDER BY cc.chapter_num ASC, cc.create_time DESC
+        <include refid="pageLimit"/>
+    </select>
+
+    <!-- 根据内容ID查询章节总数 -->
+    <select id="selectChapterCountByContentId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_content_chapter cc
+        WHERE cc.content_id = #{request.contentId}
+        <if test="request.chapterNum != null">
+            AND cc.chapter_num = #{request.chapterNum}
+        </if>
+        <if test="request.title != null and request.title.trim() != ''">
+            AND cc.title = #{request.title}
+        </if>
+        <if test="request.status != null and request.status.trim() != ''">
+            AND cc.status = #{request.status}
+        </if>
+        <if test="request.startTime != null">
+            AND cc.create_time >= #{request.startTime}
+        </if>
+        <if test="request.endTime != null">
+            AND cc.create_time &lt;= #{request.endTime}
+        </if>
+    </select>
+
+    <!-- 分页查询章节列表 - 条件化连表 -->
+    <select id="selectChapterListWithLimit" resultMap="ContentChapterMap">
+        SELECT 
+            cc.id,
+            cc.content_id,
+            cc.chapter_num,
+            cc.title,
+            LEFT(cc.content, 200) as content,
+            cc.file_url,
+            cc.word_count,
+            cc.status,
+            cc.create_time,
+            cc.update_time,
+            c.content_type,
+            c.author_id,
+            c.author_nickname
+        FROM t_content_chapter cc
+        INNER JOIN t_content c ON cc.content_id = c.id
+        <include refid="chapterContentWhereCondition"/>
+        ORDER BY cc.content_id ASC, cc.chapter_num ASC, cc.create_time DESC
+        <include refid="pageLimit"/>
+    </select>
+
+
+
+    <!-- 查询章节总数 - 条件化连表 -->
+    <select id="selectChapterCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_content_chapter cc
+        <if test="request.contentType != null or request.authorId != null or request.authorNickname != null">
+            INNER JOIN t_content c ON cc.content_id = c.id
+        </if>
+        <include refid="chapterContentWhereCondition"/>
+    </select>
+
+    <!-- 根据ID查询章节详情 -->
+    <select id="selectChapterDetail" resultMap="ContentChapterMap">
+        SELECT 
+            cc.id,
+            cc.content_id,
+            cc.chapter_num,
+            cc.title,
+            cc.content,
+            cc.file_url,
+            cc.word_count,
+            cc.status,
+            cc.create_time,
+            cc.update_time,
+            c.content_type,
+            c.author_id,
+            c.author_nickname
+        FROM t_content_chapter cc
+        INNER JOIN t_content c ON cc.content_id = c.id
+        WHERE cc.id = #{id}
+    </select>
+
+    <!-- 根据内容ID删除所有章节 -->
+    <delete id="deleteByContentId">
+        DELETE FROM t_content_chapter 
+        WHERE content_id = #{contentId}
+    </delete>
+
+    <!-- 根据内容ID查询评论列表 -->
+    <select id="selectCommentsByContentId" resultMap="CommentDetailMap">
+        SELECT 
+            cm.id,
+            cm.user_id,
+            cm.user_nickname,
+            cm.user_avatar,
+            cm.create_time,
+            cm.content,
+            cm.like_count,
+            cm.status,
+            cm.parent_comment_id,
+            cm.reply_to_user_id,
+            cm.reply_to_user_nickname
+        FROM t_comment cm
+        WHERE cm.target_id = #{contentId}
+          AND cm.comment_type = 'CONTENT'
+          AND cm.status = 'NORMAL'
+        ORDER BY cm.create_time DESC
+    </select>
+
+</mapper> 

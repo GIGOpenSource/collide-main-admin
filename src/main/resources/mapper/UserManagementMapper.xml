@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.UserManagementMapper">
+
+    <!-- 用户列表查询结果映射 - 基于数据库实际字段 -->
+    <resultMap id="UserManagementDTOMap" type="com.gig.collide.dto.UserManagementDTO">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="nickname" property="nickname"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="role" property="role"/>
+        <result column="status" property="status"/>
+        <result column="banned_status" property="bannedStatus"/>
+        <result column="freeze_status" property="freezeStatus"/>
+        <result column="create_time" property="createTime"/>
+        <result column="last_login_time" property="lastLoginTime"/>
+        <result column="vip_expire_time" property="vipExpireTime"/>
+        <result column="is_delete" property="isDelete"/>
+    </resultMap>
+
+    <!-- 用户详情查询结果映射 - 基于数据库实际字段 -->
+    <resultMap id="UserDetailMap" type="com.gig.collide.dto.UserManagementDTO">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="nickname" property="nickname"/>
+        <result column="bio" property="bio"/>
+        <result column="follower_count" property="followerCount"/>
+        <result column="following_count" property="followingCount"/>
+        <result column="gender" property="gender"/>
+        <result column="invite_code" property="inviteCode"/>
+        <result column="avatar" property="avatar"/>
+        <result column="status" property="status"/>
+        <result column="banned_status" property="bannedStatus"/>
+        <result column="freeze_status" property="freezeStatus"/>
+        <result column="create_time" property="createTime"/>
+        <result column="last_login_time" property="lastLoginTime"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="role" property="role"/>
+        <result column="vip_expire_time" property="vipExpireTime"/>
+        <result column="login_count" property="loginCount"/>
+        <result column="inviter_id" property="inviterId"/>
+        <result column="invited_count" property="invitedCount"/>
+        <result column="birthday" property="birthday"/>
+        <result column="location" property="location"/>
+        <result column="content_count" property="contentCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="is_delete" property="isDelete"/>
+    </resultMap>
+
+    <!-- 分页查询用户列表（带LIMIT）- 基于数据库实际字段 -->
+    <select id="selectUserListWithLimit" resultMap="UserManagementDTOMap">
+        SELECT
+        tu.id,
+        tu.username,
+        tu.nickname,
+        tu.phone,
+        tu.email,
+        tu.role,
+        tu.status,
+        tu.banned_status,
+        tu.freeze_status,
+        tu.create_time,
+        tu.last_login_time,
+        tu.vip_expire_time,
+        tu.is_delete
+        FROM t_user tu
+        <where>
+            tu.is_delete = 'N'
+            <if test="request.id != null and request.id.trim() != ''">
+                AND tu.id = #{request.id}
+            </if>
+            <if test="request.username != null and request.username.trim() != ''">
+                AND tu.username = #{request.username}
+            </if>
+            <if test="request.phone != null and request.phone.trim() != ''">
+                AND tu.phone = #{request.phone}
+            </if>
+            <if test="request.status != null and request.status.trim() != ''">
+                AND tu.status = #{request.status}
+            </if>
+            <if test="request.bannedStatus != null and request.bannedStatus.trim() != ''">
+                AND tu.banned_status = #{request.bannedStatus}
+            </if>
+            <if test="request.freezeStatus != null and request.freezeStatus.trim() != ''">
+                AND tu.freeze_status = #{request.freezeStatus}
+            </if>
+            <if test="request.role != null and request.role.trim() != ''">
+                AND tu.role = #{request.role}
+            </if>
+            <if test="request.startTime != null">
+                AND tu.create_time >= #{request.startTime}
+            </if>
+            <if test="request.endTime != null">
+                AND tu.create_time &lt;= #{request.endTime}
+            </if>
+        </where>
+        ORDER BY tu.create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 查询用户总数 - 基于数据库实际字段 -->
+    <select id="selectUserCount" resultType="long">
+        SELECT COUNT(*)
+        FROM t_user tu
+        <where>
+            tu.is_delete = 'N'
+            <if test="request.id != null and request.id.trim() != ''">
+                AND tu.id = #{request.id}
+            </if>
+            <if test="request.username != null and request.username.trim() != ''">
+                AND tu.username = #{request.username}
+            </if>
+            <if test="request.phone != null and request.phone.trim() != ''">
+                AND tu.phone = #{request.phone}
+            </if>
+            <if test="request.status != null and request.status.trim() != ''">
+                AND tu.status = #{request.status}
+            </if>
+            <if test="request.bannedStatus != null and request.bannedStatus.trim() != ''">
+                AND tu.banned_status = #{request.bannedStatus}
+            </if>
+            <if test="request.freezeStatus != null and request.freezeStatus.trim() != ''">
+                AND tu.freeze_status = #{request.freezeStatus}
+            </if>
+            <if test="request.role != null and request.role.trim() != ''">
+                AND tu.role = #{request.role}
+            </if>
+            <if test="request.startTime != null">
+                AND tu.create_time >= #{request.startTime}
+            </if>
+            <if test="request.endTime != null">
+                AND tu.create_time &lt;= #{request.endTime}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查询用户详情 - 基于数据库实际字段 -->
+    <select id="selectUserDetail" resultMap="UserDetailMap">
+        SELECT 
+            tu.id,
+            tu.username,
+            tu.nickname,
+            tu.bio,
+            tu.follower_count,
+            tu.following_count,
+            tu.gender,
+            tu.invite_code,
+            tu.avatar,
+            tu.status,
+            tu.banned_status,
+            tu.freeze_status,
+            tu.create_time,
+            tu.last_login_time,
+            tu.phone,
+            tu.email,
+            tu.role,
+            tu.vip_expire_time,
+            tu.login_count,
+            tu.inviter_id,
+            tu.invited_count,
+            tu.birthday,
+            tu.location,
+            tu.content_count,
+            tu.like_count,
+            tu.is_delete
+        FROM t_user tu
+        WHERE tu.id = #{id} AND tu.is_delete = 'N'
+    </select>
+
+    <!-- 更新用户账号状态 -->
+    <update id="updateUserAccountStatus">
+        UPDATE t_user tu
+        SET 
+            tu.status = #{status},
+            tu.update_time = NOW()
+        WHERE tu.id = #{userId} AND tu.is_delete = 'N'
+    </update>
+
+    <!-- 更新用户禁言状态 -->
+    <update id="updateUserBanStatus">
+        UPDATE t_user tu
+        SET 
+            tu.banned_status = #{bannedStatus},
+            tu.update_time = NOW()
+        WHERE tu.id = #{userId} AND tu.is_delete = 'N'
+    </update>
+
+    <!-- 更新用户冻结状态 -->
+    <update id="updateUserFreezeStatus">
+        UPDATE t_user tu
+        SET 
+            tu.freeze_status = #{freezeStatus},
+            tu.update_time = NOW()
+        WHERE tu.id = #{userId} AND tu.is_delete = 'N'
+    </update>
+
+    <!-- 更新用户状态（用于删除操作） -->
+    <update id="updateUserStatus">
+        UPDATE t_user tu
+        SET 
+            tu.is_delete = #{isDelete},
+            tu.update_time = NOW()
+        WHERE tu.id = #{userId} AND tu.is_delete = 'N'
+    </update>
+
+
+
+
+
+    <!-- 更新用户信息（避免逻辑删除） -->
+    <update id="updateUserById">
+        UPDATE t_user tu
+        <set>
+            <if test="user.username != null and user.username.trim() != ''">
+                tu.username = #{user.username},
+            </if>
+            <if test="user.nickname != null and user.nickname.trim() != ''">
+                tu.nickname = #{user.nickname},
+            </if>
+            <if test="user.avatar != null">
+                tu.avatar = #{user.avatar},
+            </if>
+            <if test="user.email != null and user.email.trim() != ''">
+                tu.email = #{user.email},
+            </if>
+            <if test="user.phone != null and user.phone.trim() != ''">
+                tu.phone = #{user.phone},
+            </if>
+            <if test="user.role != null and user.role.trim() != ''">
+                tu.role = #{user.role},
+            </if>
+
+            <if test="user.bannedStatus != null and user.bannedStatus.trim() != ''">
+                tu.banned_status = #{user.bannedStatus},
+            </if>
+            <if test="user.freezeStatus != null and user.freezeStatus.trim() != ''">
+                tu.freeze_status = #{user.freezeStatus},
+            </if>
+            <if test="user.bio != null">
+                tu.bio = #{user.bio},
+            </if>
+            <if test="user.birthday != null">
+                tu.birthday = #{user.birthday},
+            </if>
+            <if test="user.gender != null and user.gender.trim() != ''">
+                tu.gender = #{user.gender},
+            </if>
+            <if test="user.location != null">
+                tu.location = #{user.location},
+            </if>
+            <if test="user.followerCount != null">
+                tu.follower_count = #{user.followerCount},
+            </if>
+            <if test="user.followingCount != null">
+                tu.following_count = #{user.followingCount},
+            </if>
+            <if test="user.contentCount != null">
+                tu.content_count = #{user.contentCount},
+            </if>
+            <if test="user.likeCount != null">
+                tu.like_count = #{user.likeCount},
+            </if>
+            <if test="user.vipExpireTime != null">
+                tu.vip_expire_time = #{user.vipExpireTime},
+            </if>
+            <if test="user.lastLoginTime != null">
+                tu.last_login_time = #{user.lastLoginTime},
+            </if>
+            <if test="user.loginCount != null">
+                tu.login_count = #{user.loginCount},
+            </if>
+            <if test="user.inviteCode != null and user.inviteCode.trim() != ''">
+                tu.invite_code = #{user.inviteCode},
+            </if>
+            <if test="user.inviterId != null">
+                tu.inviter_id = #{user.inviterId},
+            </if>
+            <if test="user.invitedCount != null">
+                tu.invited_count = #{user.invitedCount},
+            </if>
+            tu.update_time = NOW()
+        </set>
+        WHERE tu.id = #{user.id}
+    </update>
+
+</mapper> 

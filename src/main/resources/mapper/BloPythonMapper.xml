@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.BloPythonMapper">
+
+    <!-- Python爬虫博主信息结果映射 -->
+    <resultMap id="BloPythonDTOMap" type="com.gig.collide.dto.bloPythonDto.BloPythonDTO">
+        <id column="id" property="id"/>
+        <result column="blogger_uid" property="bloggerUid"/>
+        <result column="blogger_nickname" property="bloggerNickname"/>
+        <result column="homepage_url" property="homepageUrl"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询Python爬虫博主信息（返回所有字段，支持条件查询和分页） -->
+    <select id="selectBloPythonsWithAllFields" resultMap="BloPythonDTOMap">
+        SELECT 
+            id,
+            blogger_uid,
+            blogger_nickname,
+            homepage_url,
+            status,
+            create_time,
+            update_time
+        FROM t_blo_python
+        <where>
+            <if test="request.bloggerUid != null">
+                AND blogger_uid = #{request.bloggerUid}
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询Python爬虫博主总数 -->
+    <select id="selectBloPythonCount" resultType="long">
+        SELECT COUNT(*) 
+        FROM t_blo_python
+        <where>
+            <if test="request.bloggerUid != null">
+                AND blogger_uid = #{request.bloggerUid}
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+        </where>
+    </select>
+
+</mapper>

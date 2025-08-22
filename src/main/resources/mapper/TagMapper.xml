@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.TagMapper">
+
+    <!-- 标签列表查询结果映射 -->
+    <resultMap id="TagDTOMap" type="com.gig.collide.dto.tagDto.TagDTO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="tag_type" property="tagType"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="usage_count" property="usageCount"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 分页查询标签列表（带LIMIT） -->
+    <select id="selectTagListWithLimit" resultMap="TagDTOMap">
+        SELECT
+            id,
+            name,
+            description,
+            tag_type,
+            category_id,
+            usage_count,
+            status,
+            create_time,
+            update_time
+        FROM t_tag
+        <where>
+            <if test="request.name != null and request.name != ''">
+                AND name = #{request.name}
+            </if>
+            <if test="request.tagType != null and request.tagType != ''">
+                AND tag_type = #{request.tagType}
+            </if>
+            <if test="request.categoryId != null">
+                AND category_id = #{request.categoryId}
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+            <if test="request.startTime != null">
+                AND create_time >= #{request.startTime}
+            </if>
+            <if test="request.endTime != null">
+                AND create_time &lt;= #{request.endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 查询标签总数 -->
+    <select id="selectTagCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_tag
+        <where>
+            <if test="request.name != null and request.name != ''">
+                AND name = #{request.name}
+            </if>
+            <if test="request.tagType != null and request.tagType != ''">
+                AND tag_type = #{request.tagType}
+            </if>
+            <if test="request.categoryId != null">
+                AND category_id = #{request.categoryId}
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+            <if test="request.startTime != null">
+                AND create_time >= #{request.startTime}
+            </if>
+            <if test="request.endTime != null">
+                AND create_time &lt;= #{request.endTime}
+            </if>
+        </where>
+    </select>
+
+
+
+</mapper> 

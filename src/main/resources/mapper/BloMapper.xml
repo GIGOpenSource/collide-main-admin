@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.BloMapper">
+
+    <!-- 博主信息结果映射 -->
+    <resultMap id="BloDTOMap" type="com.gig.collide.dto.bloDto.BloDTO">
+        <id column="id" property="id"/>
+        <result column="blogger_uid" property="bloggerUid"/>
+        <result column="homepage_url" property="homepageUrl"/>
+        <result column="blogger_nickname" property="bloggerNickname"/>
+        <result column="blogger_signature" property="bloggerSignature"/>
+        <result column="avatar" property="avatar"/>
+        <result column="tags" property="tags"/>
+        <result column="follower_count" property="followerCount"/>
+        <result column="following_count" property="followingCount"/>
+        <result column="status" property="status"/>
+        <result column="is_enter" property="isEnter"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="work_count" property="workCount"/>
+        <result column="work_ratio" property="workRatio"/>
+        <result column="phone" property="phone"/>
+        <result column="account" property="account"/>
+        <result column="type" property="type"/>
+        <result column="is_python" property="isPython"/>
+    </resultMap>
+
+    <!-- 查询博主信息（分页） -->
+    <select id="selectBlosWithLimit" resultMap="BloDTOMap">
+        SELECT
+            id,
+            blogger_uid,
+            homepage_url,
+            blogger_nickname,
+            blogger_signature,
+            avatar,
+            tags,
+            follower_count,
+            following_count,
+            status,
+            is_enter,
+            create_time,
+            update_time,
+            work_count,
+            work_ratio,
+            phone,
+            account,
+            type,
+            is_python
+        FROM t_blo
+        <where>
+            is_delete = 'N'
+            <if test="request.id != null and request.id != ''">
+                AND id = CAST(#{request.id} AS SIGNED)
+            </if>
+            <if test="request.bloggerUid != null and request.bloggerUid != ''">
+                AND blogger_uid = #{request.bloggerUid}
+            </if>
+            <if test="request.homepageUrl != null and request.homepageUrl != ''">
+                AND homepage_url LIKE CONCAT('%', #{request.homepageUrl}, '%')
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+            <if test="request.tags != null and request.tags != ''">
+                AND tags LIKE CONCAT('%', #{request.tags}, '%')
+            </if>
+            <if test="request.phone != null and request.phone != ''">
+                AND phone LIKE CONCAT('%', #{request.phone}, '%')
+            </if>
+            <if test="request.account != null and request.account != ''">
+                AND account LIKE CONCAT('%', #{request.account}, '%')
+            </if>
+            <if test="request.type != null and request.type != ''">
+                AND type = #{request.type}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询博主信息（不分页，返回所有符合条件的记录） -->
+    <select id="selectBlosWithoutPagination" resultMap="BloDTOMap">
+        SELECT
+            id,
+            blogger_uid,
+            homepage_url,
+            blogger_nickname,
+            blogger_signature,
+            avatar,
+            tags,
+            follower_count,
+            following_count,
+            status,
+            is_enter,
+            create_time,
+            update_time,
+            work_count,
+            work_ratio,
+            phone,
+            account,
+            type,
+            is_python
+        FROM t_blo
+        <where>
+            is_delete = 'N'
+            <if test="request.id != null and request.id != ''">
+                AND id = CAST(#{request.id} AS SIGNED)
+            </if>
+            <if test="request.bloggerUid != null and request.bloggerUid != ''">
+                AND blogger_uid = #{request.bloggerUid}
+            </if>
+            <if test="request.homepageUrl != null and request.homepageUrl != ''">
+                AND homepage_url LIKE CONCAT('%', #{request.homepageUrl}, '%')
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+            <if test="request.tags != null and request.tags != ''">
+                AND tags LIKE CONCAT('%', #{request.tags}, '%')
+            </if>
+            <if test="request.phone != null and request.phone != ''">
+                AND phone LIKE CONCAT('%', #{request.phone}, '%')
+            </if>
+            <if test="request.account != null and request.account != ''">
+                AND account LIKE CONCAT('%', #{request.account}, '%')
+            </if>
+            <if test="request.type != null and request.type != ''">
+                AND type = #{request.type}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 查询博主总数 -->
+    <select id="selectBloCount" resultType="long">
+        SELECT COUNT(*) 
+        FROM t_blo
+        <where>
+            is_delete = 'N'
+            <if test="request.id != null and request.id != ''">
+                AND id = CAST(#{request.id} AS SIGNED)
+            </if>
+            <if test="request.bloggerUid != null and request.bloggerUid != ''">
+                AND blogger_uid = #{request.bloggerUid}
+            </if>
+            <if test="request.homepageUrl != null and request.homepageUrl != ''">
+                AND homepage_url LIKE CONCAT('%', #{request.homepageUrl}, '%')
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+            <if test="request.tags != null and request.tags != ''">
+                AND tags LIKE CONCAT('%', #{request.tags}, '%')
+            </if>
+            <if test="request.phone != null and request.phone != ''">
+                AND phone LIKE CONCAT('%', #{request.phone}, '%')
+            </if>
+            <if test="request.account != null and request.account != ''">
+                AND account LIKE CONCAT('%', #{request.account}, '%')
+            </if>
+            <if test="request.type != null and request.type != ''">
+                AND type = #{request.type}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查询单个博主（返回所有字段） -->
+    <select id="selectBloById" resultMap="BloDTOMap">
+        SELECT 
+            id,
+            blogger_uid,
+            homepage_url,
+            blogger_nickname,
+            blogger_signature,
+            avatar,
+            tags,
+            follower_count,
+            following_count,
+            status,
+            is_enter,
+            create_time,
+            update_time,
+            work_count,
+            work_ratio,
+            phone,
+            account,
+            type,
+            is_python
+        FROM t_blo
+        WHERE id = #{id} AND is_delete = 'N'
+    </select>
+
+    <!-- 软删除博主 -->
+    <update id="softDeleteBlo">
+        UPDATE t_blo 
+        SET 
+            is_delete = 'Y',
+            update_time = NOW()
+        WHERE id = #{id} AND is_delete = 'N'
+    </update>
+
+    <!-- ========== 爬虫列表管理SQL映射 ========== -->
+
+    <!-- 爬虫列表博主信息结果映射 -->
+    <resultMap id="CrawlerBloDTOMap" type="com.gig.collide.dto.bloDto.CrawlerBloDTO">
+        <id column="id" property="id"/>
+        <result column="blogger_uid" property="bloggerUid"/>
+        <result column="homepage_url" property="homepageUrl"/>
+        <result column="blogger_nickname" property="bloggerNickname"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <!-- 查询爬虫列表博主信息（返回指定字段，支持条件查询和分页） -->
+    <select id="selectCrawlerBlosWithAllFields" resultMap="CrawlerBloDTOMap">
+        SELECT 
+            id,
+            blogger_uid,
+            homepage_url,
+            blogger_nickname,
+            status
+        FROM t_blo
+        <where>
+            is_delete = 'N'
+            <if test="request.id != null and request.id != ''">
+                AND id = CAST(#{request.id} AS SIGNED)
+            </if>
+            <if test="request.bloggerUid != null and request.bloggerUid != ''">
+                AND blogger_uid = #{request.bloggerUid}
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询爬虫列表博主总数 -->
+    <select id="selectCrawlerBloCount" resultType="long">
+        SELECT COUNT(*)
+        FROM t_blo
+        <where>
+            is_delete = 'N'
+            <if test="request.id != null and request.id != ''">
+                AND id = CAST(#{request.id} AS SIGNED)
+            </if>
+            <if test="request.bloggerUid != null and request.bloggerUid != ''">
+                AND blogger_uid = #{request.bloggerUid}
+            </if>
+            <if test="request.status != null and request.status != ''">
+                AND status = #{request.status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查询单个爬虫列表博主（返回指定字段） -->
+    <select id="selectCrawlerBloById" resultMap="CrawlerBloDTOMap">
+        SELECT 
+            id,
+            blogger_uid,
+            homepage_url,
+            blogger_nickname,
+            status
+        FROM t_blo
+        WHERE id = #{id} AND is_delete = 'N'
+    </select>
+
+</mapper>

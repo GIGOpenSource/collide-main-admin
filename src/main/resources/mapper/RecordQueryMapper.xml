@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gig.collide.mapper.RecordQueryMapper">
+
+    <!-- 充值记录查询结果映射 -->
+    <resultMap id="RechargeRecordResultMap" type="java.util.Map">
+        <result column="id" property="id" jdbcType="INTEGER"/>
+        <result column="orderNo" property="orderNo" jdbcType="VARCHAR"/>
+        <result column="userId" property="userId" jdbcType="BIGINT"/>
+        <result column="orderType" property="orderType" jdbcType="VARCHAR"/>
+        <result column="goodsName" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="amount" property="amount" jdbcType="DECIMAL"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="packageName" property="packageName" jdbcType="VARCHAR"/>
+        <result column="createTime" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="settlement_status" property="settlementStatus" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 消费记录查询结果映射 -->
+    <resultMap id="ConsumptionRecordResultMap" type="java.util.Map">
+        <result column="序号" property="id" jdbcType="INTEGER"/>
+        <result column="订单ID" property="orderNo" jdbcType="VARCHAR"/>
+        <result column="用户ID" property="userId" jdbcType="BIGINT"/>
+        <result column="订单类型" property="orderType" jdbcType="VARCHAR"/>
+        <result column="消费类型" property="consumptionType" jdbcType="VARCHAR"/>
+        <result column="消费金额" property="amount" jdbcType="DECIMAL"/>
+        <result column="支付状态" property="status" jdbcType="VARCHAR"/>
+        <result column="包名" property="packageName" jdbcType="VARCHAR"/>
+        <result column="订单时间" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="settlement_status" property="settlementStatus" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 查询充值记录总数 - 放宽条件 -->
+    <select id="countRechargeRecords" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_payment p
+        INNER JOIN t_order o ON p.order_id = o.id
+        LEFT JOIN t_goods g ON o.goods_id = g.id
+        WHERE 1=1
+        <if test="packageName != null and packageName != ''">
+            AND g.package_name LIKE CONCAT('%', #{packageName}, '%')
+        </if>
+    </select>
+
+    <!-- 查询充值记录列表 - 放宽条件 -->
+    <select id="queryRechargeRecords" resultMap="RechargeRecordResultMap">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY p.create_time DESC) as id,
+        p.payment_no as orderNo,
+        p.user_id as userId,
+        o.goods_type as orderType,
+        o.goods_name as goodsName,
+        p.amount as amount,
+        p.status as status,
+        g.package_name as packageName,
+        p.create_time as createTime,
+        CASE p.status
+        WHEN 'pending' THEN '未到账'
+        WHEN 'processing' THEN '处理中'
+        WHEN 'success' THEN '已到账'
+        WHEN 'failed' THEN '到账失败'
+        WHEN 'cancelled' THEN '已取消'
+        ELSE '未知状态'
+        END as settlement_status
+        FROM t_payment p
+        INNER JOIN t_order o ON p.order_id = o.id
+        LEFT JOIN t_goods g ON o.goods_id = g.id
+        WHERE 1=1
+        <if test="packageName != null and packageName != ''">
+            AND g.package_name LIKE CONCAT('%', #{packageName}, '%')
+        </if>
+        ORDER BY p.create_time DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 查询消费记录总数 - 放宽条件 -->
+    <select id="countConsumptionRecords" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM t_payment p
+        INNER JOIN t_order o ON p.order_id = o.id
+        LEFT JOIN t_goods g ON o.goods_id = g.id
+        WHERE 1=1
+        <if test="packageName != null and packageName != ''">
+            AND g.package_name LIKE CONCAT('%', #{packageName}, '%')
+        </if>
+    </select>
+
+    <!-- 查询消费记录列表 - 放宽条件 -->
+    <select id="queryConsumptionRecords" resultMap="ConsumptionRecordResultMap">
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY p.create_time DESC) as 序号,
+        p.payment_no as 订单ID,
+        p.user_id as 用户ID,
+        o.goods_type as 订单类型,
+        CASE o.goods_type
+        WHEN 'goods' THEN '商品购买'
+        WHEN 'subscription' THEN 'VIP订阅'
+        WHEN 'content' THEN '内容购买'
+        WHEN 'coin' THEN '金币充值'
+        ELSE o.goods_type
+        END as 消费类型,
+        CASE o.payment_mode
+        WHEN 'cash' THEN p.amount
+        WHEN 'coin' THEN o.coin_cost
+        ELSE p.amount
+        END as 消费金额,
+        p.status as 支付状态,
+        g.package_name as 包名,
+        p.create_time as 订单时间,
+        CASE p.status
+        WHEN 'pending' THEN '未扣费'
+        WHEN 'processing' THEN '处理中'
+        WHEN 'success' THEN '已扣费'
+        WHEN 'failed' THEN '扣费失败'
+        WHEN 'cancelled' THEN '已取消'
+        ELSE '未知状态'
+        END as settlement_status
+        FROM t_payment p
+        INNER JOIN t_order o ON p.order_id = o.id
+        LEFT JOIN t_goods g ON o.goods_id = g.id
+        WHERE 1=1
+        <if test="packageName != null and packageName != ''">
+            AND g.package_name LIKE CONCAT('%', #{packageName}, '%')
+        </if>
+        ORDER BY p.create_time DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+</mapper>
