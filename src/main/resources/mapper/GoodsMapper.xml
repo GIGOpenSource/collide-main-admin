@@ -82,6 +82,9 @@
             <if test="request.strategyScene != null and request.strategyScene != ''">
                 AND strategy_scene LIKE CONCAT('%', #{request.strategyScene}, '%')
             </if>
+            <if test="request.isOnline != null and request.isOnline != ''">
+                AND is_online = #{request.isOnline}
+            </if>
         </where>
         ORDER BY sort_order DESC, create_time DESC
         LIMIT #{offset}, #{limit}
@@ -104,6 +107,9 @@
             </if>
             <if test="request.strategyScene != null and request.strategyScene != ''">
                 AND strategy_scene LIKE CONCAT('%', #{request.strategyScene}, '%')
+            </if>
+            <if test="request.isOnline != null and request.isOnline != ''">
+                AND is_online = #{request.isOnline}
             </if>
         </where>
     </select>

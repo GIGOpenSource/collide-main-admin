@@ -29,4 +29,9 @@ public class GoodsQueryRequest extends BaseQueryRequest {
      * 策略名称场景
      */
     private String strategyScene;
+
+    /**
+     * 是否上线：Y-上线，N-下线
+     */
+    private String isOnline;
 }

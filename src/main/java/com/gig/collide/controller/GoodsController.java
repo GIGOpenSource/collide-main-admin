@@ -38,6 +38,9 @@ public class GoodsController {
      * 功能：查询商品信息（统一接口，支持条件查询和分页）
      * 描述：提供统一的商品查询接口，支持多种查询场景和分页功能
      * 使用场景：商品列表展示、商品搜索、商品筛选、商品管理
+     * 状态说明：
+     *   - status：商品状态（active-活跃、inactive-非活跃、sold_out-售罄）
+     *   - isOnline：上线状态（Y-上线、N-下线）
      * 
      * @param request 商品查询请求对象，包含查询条件和分页参数
      * @return 商品列表分页响应
@@ -47,6 +50,7 @@ public class GoodsController {
      *   "page": 1,
      *   "size": 10,
      *   "status": "active",
+     *   "isOnline": "Y",
      *   "packageName": "com.example.app",
      *   "strategyScene": "技术",
      *   "startTime": "2025-01-01 00:00:00",
@@ -64,6 +68,7 @@ public class GoodsController {
      *       "description": "商品描述",
      *       "price": 99.99,
      *       "status": "active",
+     *       "isOnline": "Y",
      *       "categoryId": 1,
      *       "createTime": "2025-01-27T10:00:00",
      *       "updateTime": "2025-01-27T10:00:00"
@@ -79,15 +84,85 @@ public class GoodsController {
     @PostMapping("/query")
     public Map<String, Object> queryGoods(@RequestBody GoodsQueryRequest request) {
         try {
-            log.info("查询商品信息，请求参数：{}", request);
+            // 详细记录查询条件，便于调试
+            log.info("查询商品信息，详细参数：packageName={}, status={}, isOnline={}, strategyScene={}, page={}, size={}", 
+                    request.getPackageName(), request.getStatus(), request.getIsOnline(), 
+                    request.getStrategyScene(), request.getPage(), request.getSize());
+            
+            // 验证 isOnline 参数的有效性
+            if (request.getIsOnline() != null && !request.getIsOnline().trim().isEmpty()) {
+                if (!"Y".equals(request.getIsOnline()) && !"N".equals(request.getIsOnline())) {
+                    log.warn("isOnline 参数值无效：{}", request.getIsOnline());
+                    return ResponseUtil.error("isOnline 参数必须为 Y（上线）或 N（下线）");
+                }
+            }
             
             IPage<GoodsDTO> result = goodsService.queryGoods(request);
             
-            log.info("查询商品信息完成，总数：{}，当前页：{}，每页大小：{}",
-                    result.getTotal(), result.getCurrent(), result.getSize());
+            log.info("查询商品信息完成，总数：{}，当前页：{}，每页大小：{}，isOnline筛选：{}",
+                    result.getTotal(), result.getCurrent(), result.getSize(), request.getIsOnline());
             return ResponseUtil.success(result, "查询成功");
         } catch (Exception e) {
             log.error("查询商品信息失败", e);
+            return ResponseUtil.error("商品查询失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 功能：查询商品信息（GET方法，支持URL参数）
+     * 描述：提供便捷的GET方式查询接口，支持URL参数传递查询条件
+     * 使用场景：简单查询、浏览器直接访问、外部系统调用
+     * 
+     * @param packageName 包名（可选）
+     * @param status 商品状态（可选）：active、inactive、sold_out
+     * @param isOnline 上线状态（可选）：Y-上线、N-下线
+     * @param strategyScene 策略场景（可选）
+     * @param page 页码（默认1）
+     * @param size 每页大小（默认10）
+     * @return 商品列表分页响应
+     * 
+     * 请求示例：
+     * GET /api/admin/goods/list?isOnline=Y&status=active&page=1&size=10
+     * 
+     * 响应报文格式与POST /query相同
+     */
+    @GetMapping("/list")
+    public Map<String, Object> getGoodsList(
+            @RequestParam(required = false) String packageName,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String isOnline,
+            @RequestParam(required = false) String strategyScene,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        try {
+            // 详细记录查询条件
+            log.info("GET方式查询商品信息，详细参数：packageName={}, status={}, isOnline={}, strategyScene={}, page={}, size={}", 
+                    packageName, status, isOnline, strategyScene, page, size);
+            
+            // 验证 isOnline 参数的有效性
+            if (isOnline != null && !isOnline.trim().isEmpty()) {
+                if (!"Y".equals(isOnline) && !"N".equals(isOnline)) {
+                    log.warn("isOnline 参数值无效：{}", isOnline);
+                    return ResponseUtil.error("isOnline 参数必须为 Y（上线）或 N（下线）");
+                }
+            }
+            
+            // 构建查询请求对象
+            GoodsQueryRequest request = new GoodsQueryRequest();
+            request.setPackageName(packageName);
+            request.setStatus(status);
+            request.setIsOnline(isOnline);
+            request.setStrategyScene(strategyScene);
+            request.setPage(page);
+            request.setSize(size);
+            
+            IPage<GoodsDTO> result = goodsService.queryGoods(request);
+            
+            log.info("GET方式查询商品信息完成，总数：{}，当前页：{}，每页大小：{}，isOnline筛选：{}",
+                    result.getTotal(), result.getCurrent(), result.getSize(), isOnline);
+            return ResponseUtil.success(result, "查询成功");
+        } catch (Exception e) {
+            log.error("GET方式查询商品信息失败", e);
             return ResponseUtil.error("商品查询失败：" + e.getMessage());
         }
     }

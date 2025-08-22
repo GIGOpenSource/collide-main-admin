@@ -266,6 +266,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         return request.getId() != null
                 && (request.getPackageName() == null || request.getPackageName().trim().isEmpty())
                 && (request.getStatus() == null || request.getStatus().trim().isEmpty())
-                && (request.getStrategyScene() == null || request.getStrategyScene().trim().isEmpty());
+                && (request.getStrategyScene() == null || request.getStrategyScene().trim().isEmpty())
+                && (request.getIsOnline() == null || request.getIsOnline().trim().isEmpty());
     }
 }
