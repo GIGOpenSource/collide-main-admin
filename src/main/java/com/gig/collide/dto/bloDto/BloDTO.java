@@ -107,4 +107,34 @@ public class BloDTO {
      * 是否Python开发者
      */
     private Boolean isPython;
+
+    /**
+     * 是否删除 N-未删除 Y-已删除
+     */
+    private String isDelete;
+
+    /**
+     * 爬取类型
+     */
+    private String ptType;
+
+    /**
+     * 扩展字段2
+     */
+    private String extendField2;
+
+    /**
+     * 扩展字段3
+     */
+    private String extendField3;
+
+    /**
+     * 扩展字段4
+     */
+    private String extendField4;
+
+    /**
+     * 扩展字段5
+     */
+    private String extendField5;
 }

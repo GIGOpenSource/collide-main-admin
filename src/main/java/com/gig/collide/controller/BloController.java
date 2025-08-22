@@ -88,7 +88,7 @@ public class BloController {
      *   "message": "查询成功"
      * }
      */
-    @GetMapping("/query")
+    @PostMapping("/query")
     public Map<String, Object> queryBlos(@RequestBody BloQueryRequest request) {
         try {
             log.info("查询博主列表信息，请求参数：{}", request);
@@ -262,11 +262,19 @@ public class BloController {
      * 请求报文：
      * {
      *   "bloggerNickname": "博主昵称",
+     *   "bloggerUid": 12345,
+     *   "homepageUrl": "https://example.com/blogger",
      *   "phone": "13800138000",
      *   "tags": "技术,编程",
      *   "bloggerSignature": "博主签名",
      *   "account": "blogger123",
-     *   "type": "tech"
+     *   "type": "tech",
+     *   "avatar": "https://example.com/avatar.jpg",
+     *   "followerCount": 0,
+     *   "followingCount": 0,
+     *   "workCount": 0,
+     *   "workRatio": 0.00,
+     *   "ptType": "normal"
      * }
      *
      * 响应报文：
@@ -306,11 +314,21 @@ public class BloController {
      * {
      *   "id": 1,
      *   "bloggerNickname": "新昵称",
+     *   "homepageUrl": "https://example.com/new-blogger",
      *   "phone": "13800138000",
      *   "tags": "新技术,新编程",
      *   "bloggerSignature": "新签名",
      *   "account": "newaccount",
-     *   "type": "tech"
+     *   "type": "tech",
+     *   "avatar": "https://example.com/new-avatar.jpg",
+     *   "followerCount": 1000,
+     *   "followingCount": 100,
+     *   "workCount": 50,
+     *   "workRatio": 0.8,
+     *   "status": "success",
+     *   "isDelete": "N",
+     *   "isEnter": "Y",
+     *   "ptType": "advanced"
      * }
      *
      * 响应报文：
@@ -489,7 +507,15 @@ public class BloController {
         try {
             // 构建查询请求对象
             CrawlerBloQueryRequest request = new CrawlerBloQueryRequest();
-            request.setBloggerUid(Long.valueOf(bloggerUid));
+            // 安全转换博主UID，避免空指针异常
+            if (bloggerUid != null && !bloggerUid.trim().isEmpty()) {
+                try {
+                    request.setBloggerUid(Long.valueOf(bloggerUid));
+                } catch (NumberFormatException e) {
+                    log.warn("博主UID格式错误：{}", bloggerUid);
+                    return ResponseUtil.error("博主UID格式错误");
+                }
+            }
             request.setStatus(status);
             request.setPage(page);
             request.setSize(size);

@@ -45,4 +45,19 @@ public class BloQueryRequest extends BaseQueryRequest {
      * 博主类型
      */
     private String type;
+
+    /**
+     * 是否删除 N-未删除 Y-已删除
+     */
+    private String isDelete;
+
+    /**
+     * 是否入驻 N-未入驻 Y-已入驻
+     */
+    private String isEnter;
+
+    /**
+     * 爬取类型
+     */
+    private String ptType;
 }

@@ -39,4 +39,44 @@ public class BloCreateRequest {
      * 博主类型
      */
     private String type;
+
+    /**
+     * 博主UID（必须提供，如果是自动生成需要确保唯一性）
+     */
+    private Long bloggerUid;
+
+    /**
+     * 主页地址
+     */
+    private String homepageUrl;
+
+    /**
+     * 头像URL
+     */
+    private String avatar;
+
+    /**
+     * 粉丝数（默认为0）
+     */
+    private Long followerCount = 0L;
+
+    /**
+     * 关注数（默认为0）
+     */
+    private Long followingCount = 0L;
+
+    /**
+     * 作品数（默认为0）
+     */
+    private Long workCount = 0L;
+
+    /**
+     * 作品比例（默认为0.00）
+     */
+    private Double workRatio = 0.00;
+
+    /**
+     * 爬取类型
+     */
+    private String ptType;
 }
