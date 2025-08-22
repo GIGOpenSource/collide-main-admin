@@ -24,14 +24,13 @@ public class BloPythonUpdateRequest {
     private Long bloggerUid;
 
     /**
-     * 博主昵称
-     */
-    @NotBlank(message = "博主昵称不能为空")
-    private String bloggerNickname;
-
-    /**
      * 主页地址
      */
     @NotBlank(message = "主页地址不能为空")
     private String homepageUrl;
+
+    /**
+     * 状态：updated-已更新、not_updated-未更新
+     */
+    private String status;
 }

@@ -34,6 +34,7 @@ public class BloPythonController {
      * 功能：查询Python爬虫博主列表信息（支持条件查询和分页）
      * 描述：获取Python爬虫博主列表，支持多种条件筛选，返回博主的详细信息
      * 使用场景：Python爬虫博主管理、博主筛选、博主统计、管理后台博主列表
+     * 注意：status 字段支持的值：not_updated-未更新、updated-已更新
      *
      * @param request Python爬虫博主列表查询请求对象，包含查询条件和分页参数
      * @return Python爬虫博主列表信息响应
@@ -43,6 +44,7 @@ public class BloPythonController {
      *   "id": 1,
      *   "bloggerUid": 12345,
      *   "status": "not_updated",
+     *   "isDelete": "N",
      *   "page": 1,
      *   "size": 10
      * }
@@ -54,9 +56,10 @@ public class BloPythonController {
      *         {
      *           "id": 1,
      *           "bloggerUid": 12345,
-     *           "bloggerNickname": "博主昵称",
+     *           "bloggerNickname": "博主昵称（关联查询获取）",
      *           "homepageUrl": "https://example.com",
      *           "status": "not_updated",
+     *           "isDelete": "N",
      *           "createTime": "2025-08-14T10:19:30",
      *           "updateTime": "2025-08-14T10:19:30"
      *         }
@@ -94,7 +97,6 @@ public class BloPythonController {
      * 请求报文：
      * {
      *   "bloggerUid": 12345,
-     *   "bloggerNickname": "博主昵称",
      *   "homepageUrl": "https://example.com"
      * }
      *
@@ -135,8 +137,8 @@ public class BloPythonController {
      * {
      *   "id": 1,
      *   "bloggerUid": 12345,
-     *   "bloggerNickname": "新昵称",
-     *   "homepageUrl": "https://new-example.com"
+     *   "homepageUrl": "https://new-example.com",
+     *   "status": "updated"
      * }
      *
      * 响应报文：

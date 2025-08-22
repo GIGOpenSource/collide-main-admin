@@ -3,6 +3,7 @@ package com.gig.collide.domain.blo;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -26,11 +27,6 @@ public class BloPython {
     private Long bloggerUid;
 
     /**
-     * 博主昵称
-     */
-    private String bloggerNickname;
-
-    /**
      * 主页地址（前端输入，不允许为空）
      */
     private String homepageUrl;
@@ -39,6 +35,12 @@ public class BloPython {
      * 状态：updated-已更新、not_updated-未更新
      */
     private String status;
+
+    /**
+     * 是否删除：N-未删除，Y-已删除
+     */
+    @TableLogic(value = "N", delval = "Y")
+    private String isDelete;
 
     /**
      * 创建时间

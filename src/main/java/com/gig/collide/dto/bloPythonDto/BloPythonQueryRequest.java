@@ -20,4 +20,9 @@ public class BloPythonQueryRequest extends BaseQueryRequest {
      * 状态
      */
     private String status;
+
+    /**
+     * 是否删除：N-未删除，Y-已删除
+     */
+    private String isDelete;
 }

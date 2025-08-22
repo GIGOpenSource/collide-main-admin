@@ -22,7 +22,7 @@ public class BloPythonDTO {
     private Long bloggerUid;
 
     /**
-     * 博主昵称
+     * 博主昵称（关联查询从 t_blo 表获取）
      */
     private String bloggerNickname;
 
@@ -35,6 +35,11 @@ public class BloPythonDTO {
      * 状态
      */
     private String status;
+
+    /**
+     * 是否删除：N-未删除，Y-已删除
+     */
+    private String isDelete;
 
     /**
      * 创建时间

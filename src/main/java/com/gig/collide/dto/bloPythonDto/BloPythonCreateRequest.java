@@ -18,12 +18,6 @@ public class BloPythonCreateRequest {
     private Long bloggerUid;
 
     /**
-     * 博主昵称
-     */
-    @NotBlank(message = "博主昵称不能为空")
-    private String bloggerNickname;
-
-    /**
      * 主页地址
      */
     @NotBlank(message = "主页地址不能为空")
