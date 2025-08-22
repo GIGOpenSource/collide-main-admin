@@ -1,10 +1,12 @@
 package com.gig.collide.controller;
 
+import com.gig.collide.constant.OrderTypeConstant;
 import com.gig.collide.dto.BaseQueryRequest;
 import com.gig.collide.service.RecordQueryService;
 import com.gig.collide.util.PageResult;
 import com.gig.collide.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,11 +37,14 @@ public class RecordQueryController {
      * @param request 充值记录查询请求对象，包含查询条件和分页参数
      * @return 充值记录分页响应
      *
+     * 订单类型说明：
+     * - coin: 金币充值（推荐使用，对应充值记录）
+     * 
      * 请求报文：
-     * POST /api/record-query/recharge-records
+     * POST /api/admin/record-query/recharge-records
      * {
      *   "packageName": "com.example.app",
-     *   "orderType": "RECHARGE",
+     *   "orderType": "coin",
      *   "page": 1,
      *   "size": 10
      * }
@@ -80,6 +85,12 @@ public class RecordQueryController {
                 return ResponseUtil.error("请求参数不能为空");
             }
 
+            // 验证订单类型参数
+            if (StringUtils.hasText(request.getOrderType()) && 
+                !OrderTypeConstant.isValidRechargeOrderType(request.getOrderType())) {
+                return ResponseUtil.error("无效的订单类型，充值记录支持的类型：" + OrderTypeConstant.COIN_RECHARGE);
+            }
+
             // 设置默认分页参数
             if (request.getPage() == null || request.getPage() <= 0) {
                 request.setPage(1);
@@ -115,11 +126,16 @@ public class RecordQueryController {
      * @param request 消费记录查询请求对象，包含查询条件和分页参数
      * @return 消费记录分页响应
      *
+     * 订单类型说明：
+     * - goods: 商品购买（购买平台商品）
+     * - subscription: VIP订阅（购买VIP会员服务）
+     * - content: 内容购买（购买付费内容，如小说、漫画等）
+     * 
      * 请求报文：
-     * POST /api/record-query/consumption-records
+     * POST /api/admin/record-query/consumption-records
      * {
      *   "packageName": "com.example.app",
-     *   "orderType": "GOODS_PURCHASE",
+     *   "orderType": "goods",
      *   "page": 1,
      *   "size": 10
      * }
@@ -181,6 +197,12 @@ public class RecordQueryController {
         try {
             if (request == null) {
                 return ResponseUtil.error("请求参数不能为空");
+            }
+
+            // 验证订单类型参数
+            if (StringUtils.hasText(request.getOrderType()) && 
+                !OrderTypeConstant.isValidConsumptionOrderType(request.getOrderType())) {
+                return ResponseUtil.error("无效的订单类型，消费记录支持的类型：goods, subscription, content");
             }
 
             // 设置默认分页参数

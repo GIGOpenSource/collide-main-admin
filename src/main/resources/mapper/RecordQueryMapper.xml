@@ -30,7 +30,7 @@
         <result column="settlement_status" property="settlementStatus" jdbcType="VARCHAR"/>
     </resultMap>
 
-    <!-- 查询充值记录总数 - 放宽条件 -->
+    <!-- 查询充值记录总数 - 支持orderType筛选 -->
     <select id="countRechargeRecords" resultType="java.lang.Long">
         SELECT COUNT(*)
         FROM t_payment p
@@ -40,9 +40,12 @@
         <if test="packageName != null and packageName != ''">
             AND g.package_name LIKE CONCAT('%', #{packageName}, '%')
         </if>
+        <if test="orderType != null and orderType != ''">
+            AND o.goods_type = #{orderType}
+        </if>
     </select>
 
-    <!-- 查询充值记录列表 - 放宽条件 -->
+    <!-- 查询充值记录列表 - 支持orderType筛选 -->
     <select id="queryRechargeRecords" resultMap="RechargeRecordResultMap">
         SELECT
         ROW_NUMBER() OVER (ORDER BY p.create_time DESC) as id,
@@ -69,11 +72,14 @@
         <if test="packageName != null and packageName != ''">
             AND g.package_name LIKE CONCAT('%', #{packageName}, '%')
         </if>
+        <if test="orderType != null and orderType != ''">
+            AND o.goods_type = #{orderType}
+        </if>
         ORDER BY p.create_time DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
 
-    <!-- 查询消费记录总数 - 放宽条件 -->
+    <!-- 查询消费记录总数 - 支持orderType筛选 -->
     <select id="countConsumptionRecords" resultType="java.lang.Long">
         SELECT COUNT(*)
         FROM t_payment p
@@ -83,9 +89,12 @@
         <if test="packageName != null and packageName != ''">
             AND g.package_name LIKE CONCAT('%', #{packageName}, '%')
         </if>
+        <if test="orderType != null and orderType != ''">
+            AND o.goods_type = #{orderType}
+        </if>
     </select>
 
-    <!-- 查询消费记录列表 - 放宽条件 -->
+    <!-- 查询消费记录列表 - 支持orderType筛选 -->
     <select id="queryConsumptionRecords" resultMap="ConsumptionRecordResultMap">
         SELECT
         ROW_NUMBER() OVER (ORDER BY p.create_time DESC) as 序号,
@@ -121,6 +130,9 @@
         WHERE 1=1
         <if test="packageName != null and packageName != ''">
             AND g.package_name LIKE CONCAT('%', #{packageName}, '%')
+        </if>
+        <if test="orderType != null and orderType != ''">
+            AND o.goods_type = #{orderType}
         </if>
         ORDER BY p.create_time DESC
         LIMIT #{size} OFFSET #{offset}

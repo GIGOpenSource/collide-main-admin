@@ -30,13 +30,13 @@ public class RecordQueryServiceImpl implements RecordQueryService {
             Integer offset = (page - 1) * size;
 
             // 查询总数
-            Long total = recordQueryMapper.countRechargeRecords(packageName);
+            Long total = recordQueryMapper.countRechargeRecords(packageName, orderType);
             if (total == null || total == 0) {
                 return new PageResult<>(new ArrayList<>(), 0L, Long.valueOf(page), Long.valueOf(size));
             }
 
             // 查询数据
-            List<Map<String, Object>> records = recordQueryMapper.queryRechargeRecords(packageName, offset, size);
+            List<Map<String, Object>> records = recordQueryMapper.queryRechargeRecords(packageName, orderType, offset, size);
 
             return new PageResult<>(records != null ? records : new ArrayList<>(), total, Long.valueOf(page), Long.valueOf(size));
         } catch (Exception e) {
@@ -64,13 +64,13 @@ public class RecordQueryServiceImpl implements RecordQueryService {
             Integer offset = (page - 1) * size;
 
             // 查询总数
-            Long total = recordQueryMapper.countConsumptionRecords(packageName);
+            Long total = recordQueryMapper.countConsumptionRecords(packageName, orderType);
             if (total == null || total == 0) {
                 return new PageResult<>(new ArrayList<>(), 0L, Long.valueOf(page), Long.valueOf(size));
             }
 
             // 查询数据
-            List<Map<String, Object>> records = recordQueryMapper.queryConsumptionRecords(packageName, offset, size);
+            List<Map<String, Object>> records = recordQueryMapper.queryConsumptionRecords(packageName, orderType, offset, size);
 
             return new PageResult<>(records != null ? records : new ArrayList<>(), total, Long.valueOf(page), Long.valueOf(size));
         } catch (Exception e) {
