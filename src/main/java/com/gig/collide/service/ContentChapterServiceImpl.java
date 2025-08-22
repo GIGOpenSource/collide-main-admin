@@ -199,13 +199,20 @@ public class ContentChapterServiceImpl implements ContentChapterService {
         // 查询该内容的评论列表
         List<ContentStatisticsResponse.CommentDetail> comments = contentChapterMapper.selectCommentsByContentId(contentId);
 
+        // 确保comments不为null，如果为null则初始化为空列表
+        if (comments == null) {
+            comments = new ArrayList<>();
+        }
+
         // 计算总点赞量（内容点赞 + 评论点赞）
-        Long totalLikeCount = content.getLikeCount();
+        Long totalLikeCount = content.getLikeCount() != null ? content.getLikeCount() : 0L;
         Long totalCommentCount = Long.valueOf(comments.size());
 
         // 累加评论的点赞数
         for (ContentStatisticsResponse.CommentDetail comment : comments) {
-            totalLikeCount += comment.getCommentLikeCount();
+            if (comment.getCommentLikeCount() != null) {
+                totalLikeCount += comment.getCommentLikeCount();
+            }
         }
 
         // 构建响应对象
@@ -218,8 +225,8 @@ public class ContentChapterServiceImpl implements ContentChapterService {
         response.setTotalCommentCount(totalCommentCount);
         response.setComments(comments);
 
-        log.info("获取内容统计信息成功，内容ID：{}，总点赞量：{}，总评论量：{}",
-                contentId, totalLikeCount, totalCommentCount);
+        log.info("获取内容统计信息成功，内容ID：{}，总点赞量：{}，总评论量：{}，评论数量：{}",
+                contentId, totalLikeCount, totalCommentCount, comments.size());
 
         return response;
     }
@@ -878,7 +885,7 @@ public class ContentChapterServiceImpl implements ContentChapterService {
         if (request.getCommentId() == null || request.getCommentId() <= 0) {
             throw new IllegalArgumentException("评论ID不能为空或小于等于0");
         }
-        
+
         // 操作人信息处理，由于控制器已设置默认值，这里应该不会为空
         String operatorInfo = request.getOperatorNickname() != null ? request.getOperatorNickname().trim() : "系统管理员";
         log.info("开始删除评论，评论ID：{}，操作人：{}", request.getCommentId(), operatorInfo);
@@ -887,7 +894,7 @@ public class ContentChapterServiceImpl implements ContentChapterService {
         log.debug("检查评论是否存在，commentId={}", request.getCommentId());
         int commentExists = commentMapper.checkCommentExists(request.getCommentId());
         log.debug("评论存在性检查结果：commentId={}, exists={}", request.getCommentId(), commentExists);
-        
+
         if (commentExists == 0) {
             log.warn("评论不存在或已被删除，commentId={}", request.getCommentId());
             throw new IllegalArgumentException("评论不存在或已被删除，ID：" + request.getCommentId());
@@ -919,7 +926,7 @@ public class ContentChapterServiceImpl implements ContentChapterService {
         log.debug("执行评论软删除，commentId={}", request.getCommentId());
         int deleteResult = commentMapper.deleteCommentById(request.getCommentId());
         log.debug("评论删除SQL执行结果：commentId={}, affectedRows={}", request.getCommentId(), deleteResult);
-        
+
         if (deleteResult <= 0) {
             log.error("删除评论失败，SQL未影响任何行，commentId={}", request.getCommentId());
             throw new RuntimeException("删除评论失败，可能评论已被删除或不存在");
