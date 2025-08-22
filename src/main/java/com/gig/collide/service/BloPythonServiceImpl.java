@@ -51,6 +51,11 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
             queryWrapper.eq(BloPython::getStatus, request.getStatus());
         }
         
+        // 删除状态条件
+        if (StringUtils.hasText(request.getIsDelete())) {
+            queryWrapper.eq(BloPython::getIsDelete, request.getIsDelete());
+        }
+        
         // 按创建时间倒序
         queryWrapper.orderByDesc(BloPython::getCreateTime);
 
@@ -87,9 +92,9 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
         // 创建实体
         BloPython bloPython = new BloPython();
         bloPython.setBloggerUid(request.getBloggerUid());
-        bloPython.setBloggerNickname(request.getBloggerNickname());
         bloPython.setHomepageUrl(request.getHomepageUrl());
         bloPython.setStatus("not_updated"); // 默认状态
+        bloPython.setIsDelete("N"); // 默认未删除
         bloPython.setCreateTime(LocalDateTime.now());
         bloPython.setUpdateTime(LocalDateTime.now());
 
@@ -128,8 +133,13 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
         BloPython bloPython = new BloPython();
         bloPython.setId(request.getId());
         bloPython.setBloggerUid(request.getBloggerUid());
-        bloPython.setBloggerNickname(request.getBloggerNickname());
         bloPython.setHomepageUrl(request.getHomepageUrl());
+        
+        // 如果请求中包含状态，则更新状态
+        if (StringUtils.hasText(request.getStatus())) {
+            bloPython.setStatus(request.getStatus());
+        }
+        
         bloPython.setUpdateTime(LocalDateTime.now());
 
         boolean success = this.updateById(bloPython);
@@ -170,7 +180,18 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
      */
     private BloPythonDTO convertToDTO(BloPython bloPython) {
         BloPythonDTO dto = new BloPythonDTO();
-        BeanUtils.copyProperties(bloPython, dto);
+        dto.setId(bloPython.getId());
+        dto.setBloggerUid(bloPython.getBloggerUid());
+        dto.setHomepageUrl(bloPython.getHomepageUrl());
+        dto.setStatus(bloPython.getStatus());
+        dto.setIsDelete(bloPython.getIsDelete());
+        dto.setCreateTime(bloPython.getCreateTime());
+        dto.setUpdateTime(bloPython.getUpdateTime());
+        
+        // bloggerNickname 需要通过关联查询从 t_blo 表获取
+        // 暂时设置为 null，如需显示可通过 blogger_uid 关联查询
+        dto.setBloggerNickname(null);
+        
         return dto;
     }
 }
