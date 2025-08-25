@@ -434,9 +434,14 @@
         m.read_time,
         m.create_time
         FROM t_message m
-        INNER JOIN t_message_session ms ON ms.id = #{sessionId}
-        WHERE ((m.sender_id = ms.user_id AND m.receiver_id = ms.other_user_id)
-        OR (m.sender_id = ms.other_user_id AND m.receiver_id = ms.user_id))
+        <if test="sessionId != null">
+            INNER JOIN t_message_session ms ON ms.id = #{sessionId}
+            WHERE ((m.sender_id = ms.user_id AND m.receiver_id = ms.other_user_id)
+            OR (m.sender_id = ms.other_user_id AND m.receiver_id = ms.user_id))
+        </if>
+        <if test="sessionId == null">
+            WHERE 1=1
+        </if>
         <if test="startTime != null and startTime != ''">
             AND m.create_time >= #{startTime}
         </if>
@@ -453,9 +458,14 @@
     <select id="countMessagesBySessionIdWithTimeRange" resultType="java.lang.Long">
         SELECT COUNT(*)
         FROM t_message m
-        INNER JOIN t_message_session ms ON ms.id = #{sessionId}
-        WHERE ((m.sender_id = ms.user_id AND m.receiver_id = ms.other_user_id)
-        OR (m.sender_id = ms.other_user_id AND m.receiver_id = ms.user_id))
+        <if test="sessionId != null">
+            INNER JOIN t_message_session ms ON ms.id = #{sessionId}
+            WHERE ((m.sender_id = ms.user_id AND m.receiver_id = ms.other_user_id)
+            OR (m.sender_id = ms.other_user_id AND m.receiver_id = ms.user_id))
+        </if>
+        <if test="sessionId == null">
+            WHERE 1=1
+        </if>
         <if test="startTime != null and startTime != ''">
             AND m.create_time >= #{startTime}
         </if>

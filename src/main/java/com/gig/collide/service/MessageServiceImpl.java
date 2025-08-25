@@ -7,10 +7,8 @@ import com.gig.collide.dto.messageDto.MessageDetailDTO;
 import com.gig.collide.dto.messageDto.MessageDetailWithCountDTO;
 import com.gig.collide.dto.messageDto.MessageSessionDTO;
 import com.gig.collide.dto.messageDto.MessageSessionQueryRequest;
-
-import com.gig.collide.dto.messageDto.MessageCreateRequest;
 import com.gig.collide.dto.messageDto.MessageSessionDetailQueryRequest;
-import com.gig.collide.dto.messageDto.MessageUpdateRequest;
+
 import com.gig.collide.dto.messageDto.InformCreateRequest;
 import com.gig.collide.dto.messageDto.MessageSimpleDTO;
 import com.gig.collide.dto.messageDto.MessageSimpleQueryRequest;
@@ -535,8 +533,11 @@ public class MessageServiceImpl implements MessageService {
             log.info("开始根据会话ID查询消息详情，请求参数：{}", request);
 
             // 参数验证
+            if (request == null) {
+                throw new IllegalArgumentException("请求参数不能为空");
+            }
             if (request.getSessionId() == null || request.getSessionId() <= 0) {
-                throw new IllegalArgumentException("会话ID必须大于0");
+                throw new IllegalArgumentException("会话ID不能为空且必须大于0");
             }
 
             // 设置默认分页参数

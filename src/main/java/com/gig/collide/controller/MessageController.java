@@ -118,9 +118,10 @@ public class MessageController {
                 return ResponseUtil.error("参数错误：请求参数不能为空");
             }
 
+            // 验证sessionId是否为空
             if (request.getSessionId() == null || request.getSessionId() <= 0) {
-                log.warn("查询会话消息详情参数错误，会话ID无效：{}", request.getSessionId());
-                return ResponseUtil.error("参数错误：会话ID必须大于0");
+                log.warn("查询会话消息详情参数错误，sessionId不能为空或小于等于0");
+                return ResponseUtil.error("参数错误：sessionId不能为空且必须大于0");
             }
 
             // 设置默认分页参数
@@ -132,7 +133,14 @@ public class MessageController {
             }
 
             PageResult<MessageDetailDTO> result = messageService.queryMessagesBySessionId(request);
-            return ResponseUtil.success(result, "查询成功");
+            return ResponseUtil.pageSuccessWithRecords(
+                    result.getData(),
+                    result.getTotal(),
+                    result.getCurrent(),
+                    result.getSize(),
+                    result.getPages(),
+                    "查询成功"
+            );
 
         } catch (IllegalArgumentException e) {
             log.warn("查询会话消息详情参数错误，错误信息：{}", e.getMessage());
