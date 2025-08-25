@@ -12,6 +12,8 @@ import com.gig.collide.dto.messageDto.MessageCreateRequest;
 import com.gig.collide.dto.messageDto.MessageSessionDetailQueryRequest;
 import com.gig.collide.dto.messageDto.MessageUpdateRequest;
 import com.gig.collide.dto.messageDto.InformCreateRequest;
+import com.gig.collide.dto.messageDto.MessageSimpleDTO;
+import com.gig.collide.dto.messageDto.MessageSimpleQueryRequest;
 import com.gig.collide.mapper.MessageMapper;
 import com.gig.collide.util.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -569,6 +571,41 @@ public class MessageServiceImpl implements MessageService {
         } catch (Exception e) {
             log.error("根据会话ID查询消息详情失败，会话ID：{}", request != null ? request.getSessionId() : null, e);
             throw new RuntimeException("查询消息详情失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public PageResult<MessageSimpleDTO> queryMessageSimpleList(MessageSimpleQueryRequest request) {
+        try {
+            log.info("开始查询消息简单信息列表，请求参数：{}", request);
+
+            // 设置默认分页参数
+            request.setDefaultPagination();
+
+            // 计算偏移量
+            int offset = (request.getPage() - 1) * request.getSize();
+
+            // 查询总数
+            Long total = messageMapper.queryMessageSimpleCount(request);
+
+            // 创建新的请求对象，包含offset参数
+            MessageSimpleQueryRequest queryRequest = new MessageSimpleQueryRequest();
+            queryRequest.setId(request.getId());
+            queryRequest.setStatus(request.getStatus());
+            queryRequest.setPage(request.getPage());
+            queryRequest.setSize(request.getSize());
+            // 添加offset参数到请求中
+            queryRequest.setOffset(offset);
+
+            // 查询分页数据
+            List<MessageSimpleDTO> messages = messageMapper.queryMessageSimpleList(queryRequest);
+
+            log.info("查询消息简单信息列表成功，总数：{}，返回数据条数：{}", total, messages.size());
+            return new PageResult<>(messages, total, Long.valueOf(request.getPage()), Long.valueOf(request.getSize()));
+
+        } catch (Exception e) {
+            log.error("查询消息简单信息列表失败", e);
+            throw new RuntimeException("查询消息简单信息列表失败：" + e.getMessage());
         }
     }
 }

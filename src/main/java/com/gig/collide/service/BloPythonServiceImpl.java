@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * Python爬虫博主信息服务实现类
- * 
+ *
  * @author why
  * @since 2025-01-27
  * @version 1.0
@@ -40,36 +40,40 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
 
         // 构建查询条件
         LambdaQueryWrapper<BloPython> queryWrapper = new LambdaQueryWrapper<>();
-        
+
         // 博主UID条件
         if (request.getBloggerUid() != null) {
             queryWrapper.eq(BloPython::getBloggerUid, request.getBloggerUid());
         }
-        
+
         // 状态条件
         if (StringUtils.hasText(request.getStatus())) {
             queryWrapper.eq(BloPython::getStatus, request.getStatus());
         }
-        
+
         // 删除状态条件
         if (StringUtils.hasText(request.getIsDelete())) {
             queryWrapper.eq(BloPython::getIsDelete, request.getIsDelete());
         }
-        
+
         // 按创建时间倒序
         queryWrapper.orderByDesc(BloPython::getCreateTime);
 
-        // 分页查询
-        Page<BloPython> page = new Page<>(request.getPage(), request.getSize());
-        IPage<BloPython> result = this.page(page, queryWrapper);
+        // 先查询总数
+        long total = this.count(queryWrapper);
+
+        // 手动分页查询
+        long offset = (request.getPage() - 1) * request.getSize();
+        queryWrapper.last("LIMIT " + request.getSize() + " OFFSET " + offset);
+        List<BloPython> records = this.list(queryWrapper);
 
         // 转换为DTO
-        List<BloPythonDTO> dtoList = result.getRecords().stream()
+        List<BloPythonDTO> dtoList = records.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
 
         // 构建分页结果
-        PageResult<BloPythonDTO> pageResult = new PageResult<>(dtoList, result.getTotal(), Long.valueOf(request.getPage()), Long.valueOf(request.getSize()));
+        PageResult<BloPythonDTO> pageResult = new PageResult<>(dtoList, total, Long.valueOf(request.getPage()), Long.valueOf(request.getSize()));
 
         log.info("查询Python爬虫博主信息完成，总数：{}，当前页：{}，每页大小：{}",
                 pageResult.getTotal(), pageResult.getCurrent(), pageResult.getSize());
@@ -99,7 +103,7 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
         bloPython.setUpdateTime(LocalDateTime.now());
 
         boolean success = this.save(bloPython);
-        
+
         if (success) {
             log.info("创建Python爬虫博主成功，ID：{}", bloPython.getId());
         } else {
@@ -123,7 +127,7 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
         // 检查博主UID是否已被其他记录使用
         LambdaQueryWrapper<BloPython> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(BloPython::getBloggerUid, request.getBloggerUid())
-                   .ne(BloPython::getId, request.getId());
+                .ne(BloPython::getId, request.getId());
         if (this.count(queryWrapper) > 0) {
             log.warn("博主UID已被其他记录使用：{}", request.getBloggerUid());
             return false;
@@ -134,16 +138,16 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
         bloPython.setId(request.getId());
         bloPython.setBloggerUid(request.getBloggerUid());
         bloPython.setHomepageUrl(request.getHomepageUrl());
-        
+
         // 如果请求中包含状态，则更新状态
         if (StringUtils.hasText(request.getStatus())) {
             bloPython.setStatus(request.getStatus());
         }
-        
+
         bloPython.setUpdateTime(LocalDateTime.now());
 
         boolean success = this.updateById(bloPython);
-        
+
         if (success) {
             log.info("更新Python爬虫博主信息成功，ID：{}", request.getId());
         } else {
@@ -165,7 +169,7 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
         }
 
         boolean success = this.removeById(id);
-        
+
         if (success) {
             log.info("删除Python爬虫博主成功，ID：{}", id);
         } else {
@@ -187,11 +191,11 @@ public class BloPythonServiceImpl extends ServiceImpl<BloPythonMapper, BloPython
         dto.setIsDelete(bloPython.getIsDelete());
         dto.setCreateTime(bloPython.getCreateTime());
         dto.setUpdateTime(bloPython.getUpdateTime());
-        
+
         // bloggerNickname 需要通过关联查询从 t_blo 表获取
         // 暂时设置为 null，如需显示可通过 blogger_uid 关联查询
         dto.setBloggerNickname(null);
-        
+
         return dto;
     }
 }

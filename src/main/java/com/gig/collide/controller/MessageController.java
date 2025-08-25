@@ -7,6 +7,8 @@ import com.gig.collide.dto.messageDto.MessageSessionDTO;
 import com.gig.collide.dto.messageDto.MessageSessionQueryRequest;
 import com.gig.collide.dto.messageDto.InformCreateRequest;
 import com.gig.collide.dto.messageDto.MessageSessionDetailQueryRequest;
+import com.gig.collide.dto.messageDto.MessageSimpleDTO;
+import com.gig.collide.dto.messageDto.MessageSimpleQueryRequest;
 import com.gig.collide.service.MessageService;
 import com.gig.collide.util.PageResult;
 import com.gig.collide.util.ResponseUtil;
@@ -325,6 +327,81 @@ public class MessageController {
         } catch (Exception e) {
             log.error("创建消息通知时发生未知异常", e);
             return ResponseUtil.error("创建失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 功能：查询消息简单信息列表
+     * 描述：分页查询消息的id和status字段，支持按id和status筛选
+     * 使用场景：消息状态查询、消息管理、状态统计
+     *
+     * @param request 查询请求参数
+     * @return 消息简单信息分页响应
+     *
+     * 请求报文：
+     * POST /api/admin/message/simple/list
+     * {
+     *   "id": 1,
+     *   "status": "sent",
+     *   "page": 1,
+     *   "size": 10
+     * }
+     *
+     * 响应报文：
+     * {
+     *   "code": 0,
+     *   "data": {
+     *     "data": [
+     *       {
+     *         "id": 1,
+     *         "status": "sent"
+     *       },
+     *       {
+     *         "id": 2,
+     *         "status": "read"
+     *       }
+     *     ],
+     *     "total": 100,
+     *     "size": 10,
+     *     "current": 1,
+     *     "pages": 10
+     *   },
+     *   "message": "查询成功"
+     * }
+     */
+    @PostMapping("/simple/list")
+    public Map<String, Object> queryMessageSimpleList(@RequestBody MessageSimpleQueryRequest request) {
+        try {
+            log.info("接收到查询消息简单信息列表请求，请求参数：{}", request);
+
+            // 参数验证
+            if (request == null) {
+                log.warn("查询消息简单信息列表参数错误，请求参数为空");
+                return ResponseUtil.error("参数错误：请求参数不能为空");
+            }
+
+            // 调用Service进行查询
+            PageResult<MessageSimpleDTO> result = messageService.queryMessageSimpleList(request);
+
+            log.info("查询消息简单信息列表成功，总数：{}，返回数据条数：{}", result.getTotal(), result.getData().size());
+            return ResponseUtil.pageSuccessWithRecords(
+                    result.getData(),
+                    result.getTotal(),
+                    result.getCurrent(),
+                    result.getSize(),
+                    result.getPages(),
+                    "查询成功"
+            );
+
+        } catch (IllegalArgumentException e) {
+            log.warn("查询消息简单信息列表参数错误，错误信息：{}", e.getMessage());
+            return ResponseUtil.error("参数错误：" + e.getMessage());
+        } catch (RuntimeException e) {
+            log.error("查询消息简单信息列表时发生运行时异常，错误信息：{}", e.getMessage(), e);
+            return ResponseUtil.error("查询失败：" + e.getMessage());
+        } catch (Exception e) {
+            log.error("查询消息简单信息列表时发生未知异常", e);
+            return ResponseUtil.error("查询失败：" + e.getMessage());
         }
     }
 }

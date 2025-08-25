@@ -995,16 +995,27 @@ public class ContentChapterServiceImpl implements ContentChapterService {
             }
         }
 
+        // 计算偏移量
+        long offset = (request.getPage() - 1) * request.getSize();
+
         // 创建分页对象
         IPage<CategoryDTO> page = new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(request.getPage(), request.getSize());
 
-        // 执行查询
-        IPage<CategoryDTO> result = categoryMapper.selectCategoryList(page, request);
+        // 先查询总数
+        long total = categoryMapper.selectCategoryCount(request);
 
-        log.info("分类列表查询完成，总记录数：{}，当前页：{}，每页大小：{}",
-                result.getTotal(), result.getCurrent(), result.getSize());
+        // 执行分页查询
+        List<CategoryDTO> records = categoryMapper.selectCategoryListWithLimit(request, offset, request.getSize());
 
-        return result;
+        // 设置分页结果
+        page.setTotal(total);
+        page.setRecords(records);
+        page.setPages((total + request.getSize() - 1) / request.getSize());
+
+        log.info("分类列表查询完成，总记录数：{}，当前页：{}，每页大小：{}，总页数：{}",
+                total, request.getPage(), request.getSize(), page.getPages());
+
+        return page;
     }
 
     @Override

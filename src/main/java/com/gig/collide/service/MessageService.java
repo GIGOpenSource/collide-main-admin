@@ -88,6 +88,14 @@ public interface MessageService {
     MessageDetailWithCountDTO getMessageByIdWithCount(Long id);
 
     /**
+     * 查询消息简单信息列表（只包含id和status）
+     *
+     * @param request 查询请求
+     * @return 分页结果
+     */
+    PageResult<MessageSimpleDTO> queryMessageSimpleList(MessageSimpleQueryRequest request);
+
+    /**
      * 根据ID查询单个消息详情（支持分页，包含对话数量）
      *
      * @param id 消息ID

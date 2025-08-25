@@ -20,27 +20,27 @@
 
     <!-- 分页查询分类列表（支持条件筛选） -->
     <select id="selectCategoryList" resultMap="CategoryDTOResultMap">
-        SELECT 
-            c.id,
-            c.name,
-            c.description,
-            c.parent_id,
-            p.name as parent_name,
-            c.icon_url,
-            c.sort,
-            CASE 
-                WHEN c.parent_id = 0 THEN 1
-                ELSE (
-                    CASE 
-                        WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
-                        ELSE 3
-                    END
-                )
-            END as level,
-            c.content_count,
-            c.status,
-            c.create_time,
-            c.update_time
+        SELECT
+        c.id,
+        c.name,
+        c.description,
+        c.parent_id,
+        p.name as parent_name,
+        c.icon_url,
+        c.sort,
+        CASE
+        WHEN c.parent_id = 0 THEN 1
+        ELSE (
+        CASE
+        WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
+        ELSE 3
+        END
+        )
+        END as level,
+        c.content_count,
+        c.status,
+        c.create_time,
+        c.update_time
         FROM t_category c
         LEFT JOIN t_category p ON c.parent_id = p.id AND p.status != 'inactive'
         <where>
@@ -56,15 +56,15 @@
             </if>
             <if test="req.level != null">
                 AND (
-                    CASE 
-                        WHEN c.parent_id = 0 THEN 1
-                        ELSE (
-                            CASE 
-                                WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
-                                ELSE 3
-                            END
-                        )
-                    END
+                CASE
+                WHEN c.parent_id = 0 THEN 1
+                ELSE (
+                CASE
+                WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
+                ELSE 3
+                END
+                )
+                END
                 ) = #{req.level}
             </if>
             <if test="req.status != null and req.status.trim() != ''">
@@ -80,9 +80,113 @@
         ORDER BY c.parent_id ASC, c.sort ASC, c.create_time ASC
     </select>
 
+    <!-- 查询分类总数 -->
+    <select id="selectCategoryCount" resultType="long">
+        SELECT COUNT(*)
+        FROM t_category c
+        LEFT JOIN t_category p ON c.parent_id = p.id AND p.status != 'inactive'
+        <where>
+            c.status != 'inactive'
+            <if test="req.name != null and req.name.trim() != ''">
+                AND c.name LIKE CONCAT('%', #{req.name}, '%')
+            </if>
+            <if test="req.parentId != null">
+                AND c.parent_id = #{req.parentId}
+            </if>
+            <if test="req.parentName != null and req.parentName.trim() != ''">
+                AND p.name = #{req.parentName}
+            </if>
+            <if test="req.level != null">
+                AND (
+                CASE
+                WHEN c.parent_id = 0 THEN 1
+                ELSE (
+                CASE
+                WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
+                ELSE 3
+                END
+                )
+                END
+                ) = #{req.level}
+            </if>
+            <if test="req.status != null and req.status.trim() != ''">
+                AND c.status = #{req.status}
+            </if>
+            <if test="req.startTime != null">
+                AND c.create_time >= #{req.startTime}
+            </if>
+            <if test="req.endTime != null">
+                AND c.create_time &lt;= #{req.endTime}
+            </if>
+        </where>
+    </select>
+
+    <!-- 分页查询分类列表（带LIMIT） -->
+    <select id="selectCategoryListWithLimit" resultMap="CategoryDTOResultMap">
+        SELECT
+        c.id,
+        c.name,
+        c.description,
+        c.parent_id,
+        p.name as parent_name,
+        c.icon_url,
+        c.sort,
+        CASE
+        WHEN c.parent_id = 0 THEN 1
+        ELSE (
+        CASE
+        WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
+        ELSE 3
+        END
+        )
+        END as level,
+        c.content_count,
+        c.status,
+        c.create_time,
+        c.update_time
+        FROM t_category c
+        LEFT JOIN t_category p ON c.parent_id = p.id AND p.status != 'inactive'
+        <where>
+            c.status != 'inactive'
+            <if test="req.name != null and req.name.trim() != ''">
+                AND c.name LIKE CONCAT('%', #{req.name}, '%')
+            </if>
+            <if test="req.parentId != null">
+                AND c.parent_id = #{req.parentId}
+            </if>
+            <if test="req.parentName != null and req.parentName.trim() != ''">
+                AND p.name = #{req.parentName}
+            </if>
+            <if test="req.level != null">
+                AND (
+                CASE
+                WHEN c.parent_id = 0 THEN 1
+                ELSE (
+                CASE
+                WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
+                ELSE 3
+                END
+                )
+                END
+                ) = #{req.level}
+            </if>
+            <if test="req.status != null and req.status.trim() != ''">
+                AND c.status = #{req.status}
+            </if>
+            <if test="req.startTime != null">
+                AND c.create_time >= #{req.startTime}
+            </if>
+            <if test="req.endTime != null">
+                AND c.create_time &lt;= #{req.endTime}
+            </if>
+        </where>
+        ORDER BY c.parent_id ASC, c.sort ASC, c.create_time ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
     <!-- 根据ID查询分类详情 -->
     <select id="selectCategoryById" resultMap="CategoryDTOResultMap">
-        SELECT 
+        SELECT
             c.id,
             c.name,
             c.description,
@@ -90,21 +194,21 @@
             p.name as parent_name,
             c.icon_url,
             c.sort,
-            CASE 
+            CASE
                 WHEN c.parent_id = 0 THEN 1
                 ELSE (
-                    CASE 
+                    CASE
                         WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
                         ELSE 3
-                    END
-                )
-            END as level,
+                        END
+                    )
+                END as level,
             c.content_count,
             c.status,
             c.create_time,
             c.update_time
         FROM t_category c
-        LEFT JOIN t_category p ON c.parent_id = p.id AND p.status != 'inactive'
+                 LEFT JOIN t_category p ON c.parent_id = p.id AND p.status != 'inactive'
         WHERE c.id = #{id} AND c.status != 'inactive'
     </select>
 
@@ -112,7 +216,7 @@
     <select id="checkCategoryNameExists" resultType="int">
         SELECT COUNT(*)
         FROM t_category
-        WHERE name = #{name} 
+        WHERE name = #{name}
         AND parent_id = #{parentId}
         AND status != 'inactive'
         <if test="excludeId != null">
@@ -150,7 +254,7 @@
 
     <!-- 查询所有有效分类（用于构建树结构） -->
     <select id="selectAllActiveCategories" resultMap="CategoryDTOResultMap">
-        SELECT 
+        SELECT
             c.id,
             c.name,
             c.description,
@@ -158,21 +262,21 @@
             p.name as parent_name,
             c.icon_url,
             c.sort,
-            CASE 
+            CASE
                 WHEN c.parent_id = 0 THEN 1
                 ELSE (
-                    CASE 
+                    CASE
                         WHEN (SELECT parent_id FROM t_category WHERE id = c.parent_id AND status != 'inactive') = 0 THEN 2
                         ELSE 3
-                    END
-                )
-            END as level,
+                        END
+                    )
+                END as level,
             c.content_count,
             c.status,
             c.create_time,
             c.update_time
         FROM t_category c
-        LEFT JOIN t_category p ON c.parent_id = p.id AND p.status != 'inactive'
+                 LEFT JOIN t_category p ON c.parent_id = p.id AND p.status != 'inactive'
         WHERE c.status = 'active'
         ORDER BY c.parent_id ASC, c.sort ASC, c.create_time ASC
     </select>
@@ -184,14 +288,14 @@
                 SELECT 1
             </when>
             <otherwise>
-                SELECT 
-                    CASE 
-                        WHEN parent_id = 0 THEN 2
-                                            WHEN (SELECT parent_id FROM t_category WHERE id = #{parentId} AND status != 'inactive') = 0 THEN 2
-                    ELSE 3
+                SELECT
+                CASE
+                WHEN parent_id = 0 THEN 2
+                WHEN (SELECT parent_id FROM t_category WHERE id = #{parentId} AND status != 'inactive') = 0 THEN 2
+                ELSE 3
                 END
-            FROM t_category
-            WHERE id = #{parentId} AND status != 'inactive'
+                FROM t_category
+                WHERE id = #{parentId} AND status != 'inactive'
             </otherwise>
         </choose>
     </select>

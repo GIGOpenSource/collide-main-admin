@@ -154,10 +154,8 @@ public class ResponseUtil {
         pageData.put("current", current);
         pageData.put("pages", pages);
         
-        // 构建data对象，确保data字段存在
-        Map<String, Object> dataWrapper = new HashMap<>();
-        dataWrapper.put("data", pageData);
-        response.put("data", dataWrapper);
+        // 直接使用pageData作为data，避免多层包装
+        response.put("data", pageData);
         
         return response;
     }

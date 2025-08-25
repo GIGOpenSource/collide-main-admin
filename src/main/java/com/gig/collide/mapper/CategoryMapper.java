@@ -30,6 +30,26 @@ public interface CategoryMapper extends BaseMapper<Category> {
     IPage<CategoryDTO> selectCategoryList(IPage<CategoryDTO> page, @Param("req") CategoryQueryRequest request);
     
     /**
+     * 查询分类总数
+     * 
+     * @param request 查询条件
+     * @return 总数
+     */
+    Long selectCategoryCount(@Param("req") CategoryQueryRequest request);
+    
+    /**
+     * 分页查询分类列表（带LIMIT）
+     * 
+     * @param request 查询条件
+     * @param offset 偏移量
+     * @param limit 限制数量
+     * @return 分类列表
+     */
+    List<CategoryDTO> selectCategoryListWithLimit(@Param("req") CategoryQueryRequest request, 
+                                                 @Param("offset") long offset, 
+                                                 @Param("limit") long limit);
+    
+    /**
      * 根据ID查询分类详情
      * 
      * @param id 分类ID

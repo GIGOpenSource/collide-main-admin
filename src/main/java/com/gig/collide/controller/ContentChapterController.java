@@ -847,7 +847,14 @@ public class ContentChapterController {
     public Map<String, Object> getCategoryList(@RequestBody CategoryQueryRequest request) {
         try {
             IPage<CategoryDTO> result = contentChapterService.getCategoryList(request);
-            return ResponseUtil.success(result, "查询成功");
+            return ResponseUtil.pageSuccessWithRecords(
+                    result.getRecords(),
+                    result.getTotal(),
+                    result.getCurrent(),
+                    result.getSize(),
+                    result.getPages(),
+                    "查询成功"
+            );
         } catch (Exception e) {
             log.error("查询分类列表失败", e);
             return ResponseUtil.error("查询失败：" + e.getMessage());

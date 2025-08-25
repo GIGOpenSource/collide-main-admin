@@ -472,5 +472,42 @@
         LIMIT #{size} OFFSET #{offset}
     </select>
 
+    <!-- 消息简单信息查询结果映射 -->
+    <resultMap id="MessageSimpleResultMap" type="com.gig.collide.dto.messageDto.MessageSimpleDTO">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 查询消息简单信息列表（只包含id和status） -->
+    <select id="queryMessageSimpleList" resultMap="MessageSimpleResultMap" parameterType="com.gig.collide.dto.messageDto.MessageSimpleQueryRequest">
+        SELECT
+        id,
+        status
+        FROM t_message
+        <where>
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 查询消息简单信息总数 -->
+    <select id="queryMessageSimpleCount" resultType="java.lang.Long" parameterType="com.gig.collide.dto.messageDto.MessageSimpleQueryRequest">
+        SELECT COUNT(*)
+        FROM t_message
+        <where>
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
 
 </mapper>

@@ -8,6 +8,8 @@ import com.gig.collide.dto.messageDto.MessageDetailDTO;
 import com.gig.collide.dto.messageDto.MessageDetailWithCountDTO;
 import com.gig.collide.dto.messageDto.MessageSessionDTO;
 import com.gig.collide.dto.messageDto.MessageSessionQueryRequest;
+import com.gig.collide.dto.messageDto.MessageSimpleDTO;
+import com.gig.collide.dto.messageDto.MessageSimpleQueryRequest;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -65,6 +67,22 @@ public interface MessageMapper extends BaseMapper<Message> {
      * @return 消息详情包含对话数量
      */
     MessageDetailWithCountDTO getMessageByIdWithCount(@Param("id") Long id);
+
+    /**
+     * 查询消息简单信息列表（只包含id和status）
+     *
+     * @param request 查询请求
+     * @return 消息简单信息列表
+     */
+    List<MessageSimpleDTO> queryMessageSimpleList(MessageSimpleQueryRequest request);
+
+    /**
+     * 查询消息简单信息总数
+     *
+     * @param request 查询请求
+     * @return 总数
+     */
+    Long queryMessageSimpleCount(MessageSimpleQueryRequest request);
 
     /**
      * 根据ID查询单个消息详情（支持分页，包含对话数量）
