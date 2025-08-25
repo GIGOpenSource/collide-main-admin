@@ -47,6 +47,16 @@
         <result column="message_count" property="messageCount" jdbcType="BIGINT"/>
     </resultMap>
 
+    <!-- 消息简单信息查询结果映射 -->
+    <resultMap id="MessageSimpleResultMap" type="com.gig.collide.dto.messageDto.MessageSimpleDTO">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="sender_id" property="senderId" jdbcType="BIGINT"/>
+        <result column="receiver_id" property="receiverId" jdbcType="BIGINT"/>
+        <result column="content_count" property="contentCount" jdbcType="BIGINT"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+    </resultMap>
+
 
 
     <!-- 消息通知查询结果映射 -->
@@ -472,27 +482,33 @@
         LIMIT #{size} OFFSET #{offset}
     </select>
 
-    <!-- 消息简单信息查询结果映射 -->
-    <resultMap id="MessageSimpleResultMap" type="com.gig.collide.dto.messageDto.MessageSimpleDTO">
-        <id column="id" property="id" jdbcType="BIGINT"/>
-        <result column="status" property="status" jdbcType="VARCHAR"/>
-    </resultMap>
 
-    <!-- 查询消息简单信息列表（只包含id和status） -->
+
+    <!-- 查询消息简单信息列表（包含详细信息） -->
     <select id="queryMessageSimpleList" resultMap="MessageSimpleResultMap" parameterType="com.gig.collide.dto.messageDto.MessageSimpleQueryRequest">
         SELECT
         id,
+        sender_id,
+        receiver_id,
+        LENGTH(content) as content_count,
+        update_time,
         status
         FROM t_message
         <where>
             <if test="id != null">
                 AND id = #{id}
             </if>
+            <if test="senderId != null">
+                AND sender_id = #{senderId}
+            </if>
+            <if test="receiverId != null">
+                AND receiver_id = #{receiverId}
+            </if>
             <if test="status != null and status != ''">
                 AND status = #{status}
             </if>
         </where>
-        ORDER BY id DESC
+        ORDER BY update_time DESC, id DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
 
@@ -503,6 +519,12 @@
         <where>
             <if test="id != null">
                 AND id = #{id}
+            </if>
+            <if test="senderId != null">
+                AND sender_id = #{senderId}
+            </if>
+            <if test="receiverId != null">
+                AND receiver_id = #{receiverId}
             </if>
             <if test="status != null and status != ''">
                 AND status = #{status}
